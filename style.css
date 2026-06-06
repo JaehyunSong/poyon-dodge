@@ -90,8 +90,8 @@ body {
   background: linear-gradient(to bottom, var(--color-sky-top) 0%, var(--color-sky-bottom) 70%, #d4f2db 100%);
   display: flex;
   flex-direction: column;
-  /* Apply Day/Night cycle animation (60s loop: 30s day, 30s night) */
-  animation: day-night-cycle 60s infinite ease-in-out;
+  /* Apply Day/Night cycle animation (180s loop: 90s day, 90s night) */
+  animation: day-night-cycle 180s infinite ease-in-out;
 }
 
 /* Animated sky background items */
@@ -107,7 +107,7 @@ body {
   box-shadow: 0 0 20px 8px var(--color-sun-glow);
   z-index: 0;
   /* Sun/Moon transition animation */
-  animation: sun-moon-cycle 60s infinite ease-in-out;
+  animation: sun-moon-cycle 180s infinite ease-in-out;
   transition: opacity 0.5s ease;
 }
 

@@ -640,7 +640,7 @@ class GameEngine {
     this.startTime = Date.now();
     this.lastTimeIncrement = Date.now();
     this.lastSpawnTime = Date.now();
-    this.lastFrameTime = Date.now();
+    this.lastFrameTime = 0; // Fixes Epoch/HighRes timestamp mismatch causing visual glitches on restart
     this.elapsedPlayTime = 0;
 
     this.transitionTo('PLAYING');
@@ -760,7 +760,7 @@ class GameEngine {
     let swayAngle = 0;
     if (isSwaying) {
       // Random sway amplitude (width)
-      swayRange = 20 + Math.random() * 50; 
+      swayRange = Math.random() * (CANVAS_WIDTH * 0.25); // Max amplitude 135px (total sway span 270px, which is 50% of screen width)
       // Random sway speed (frequency)
       swaySpeed = 0.03 + Math.random() * 0.04;
       // Random starting phase angle
@@ -1145,7 +1145,7 @@ class GameEngine {
 
   draw() {
     const elapsedSeconds = (Date.now() - this.pageLoadTime) / 1000;
-    this.nightFactor = (1 - Math.cos(2 * Math.PI * elapsedSeconds / 60)) / 2;
+    this.nightFactor = (1 - Math.cos(2 * Math.PI * elapsedSeconds / 180)) / 2;
 
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     
@@ -1335,7 +1335,7 @@ class GameEngine {
 
   drawTitleBackground() {
     const elapsedSeconds = (Date.now() - this.pageLoadTime) / 1000;
-    this.nightFactor = (1 - Math.cos(2 * Math.PI * elapsedSeconds / 60)) / 2;
+    this.nightFactor = (1 - Math.cos(2 * Math.PI * elapsedSeconds / 180)) / 2;
 
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     
