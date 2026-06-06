@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="空から降ってくるモノを避けて、ソン先生をキャッチしよう！ぽよんぽよんが主人公のドット絵アクションゲーム。">
+  <title>ぽよんぽよんのよけよけ大作戦 | Poyonpoyon Dodge Game</title>
+  
+  <!-- Google Fonts for retro/pixel art feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Main Game Container -->
+  <div id="game-container" class="game-container">
+    
+    <!-- Game Screen wrapper (handles aspect ratio) -->
+    <div id="game-screen" class="game-screen">
+      
+      <!-- HTML5 Canvas for the game canvas -->
+      <canvas id="game-canvas"></canvas>
+
+      <!-- HUD (Heads-Up Display) Overlay -->
+      <div id="game-hud" class="game-hud hidden">
+        <!-- Left: Lives / Hearts -->
+        <div id="hud-lives" class="hud-lives" aria-label="残機">
+          <!-- Hearts will be dynamically injected here -->
+        </div>
+        
+        <!-- Right: Score Info -->
+        <div id="hud-score-container" class="hud-score-container">
+          <div class="score-label">SCORE</div>
+          <div id="hud-score" class="hud-score">0</div>
+        </div>
+      </div>
+
+      <!-- Loading Screen Overlay -->
+      <div id="loading-screen" class="screen-overlay">
+        <div class="loading-content">
+          <div class="loading-title">LOADING...</div>
+          <div class="loading-bar-container">
+            <div id="loading-bar" class="loading-bar"></div>
+          </div>
+          <div id="loading-status" class="loading-status">アセットを読み込み中...</div>
+        </div>
+      </div>
+
+      <!-- Start (Title) Screen Overlay -->
+      <div id="start-screen" class="screen-overlay hidden">
+        <div class="start-content">
+          <h1 class="game-title">
+            <span class="title-sub">ぽよんぽよんの</span><br>
+            <span class="title-main">よけよけ大作戦</span>
+          </h1>
+          
+          <div class="title-character-container">
+            <!-- We will animate a canvas preview or character image here -->
+            <div class="character-preview-sprite"></div>
+          </div>
+
+          <!-- Instructions Card -->
+          <div class="instructions-card">
+            <div class="instructions-title">あそびかた</div>
+            <ul class="instructions-list">
+              <li>左右にドラッグ（または左右矢印キー）でぽよんぽよんを動かそう！<br><span style="font-size:11px;color:#718096;">※スペースキーを押してスタートすることもできます</span></li>
+              <li><span class="highlight-good">ソン先生</span>をキャッチすると <strong>残機+1 & +10点！</strong></li>
+              <li>他のキャラクターや<span class="highlight-bad">うんぽ</span>に当たると <strong>ダメージ & 減点！</strong></li>
+              <li>時間経過とともに難易度アップ！</li>
+            </ul>
+          </div>
+
+          <button id="btn-start" class="btn btn-primary btn-pulse">スタート！</button>
+        </div>
+      </div>
+
+      <!-- Pause Screen Overlay -->
+      <div id="pause-screen" class="screen-overlay hidden">
+        <div class="pause-content">
+          <div class="pause-title">一時停止中</div>
+          <button id="btn-resume" class="btn btn-primary">ゲームに戻る</button>
+          <button id="btn-to-title" class="btn btn-secondary">タイトルへ</button>
+        </div>
+      </div>
+
+      <!-- Game Over Screen Overlay -->
+      <div id="gameover-screen" class="screen-overlay hidden">
+        <div class="gameover-content">
+          <div class="gameover-title">GAME OVER</div>
+          
+          <div class="stats-card">
+            <div class="stat-row">
+              <span class="stat-label">スコア:</span>
+              <span id="final-score" class="stat-value">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">生存時間:</span>
+              <span id="final-time" class="stat-value">0秒</span>
+            </div>
+            <div id="highscore-badge" class="highscore-badge hidden">NEW RECORD!</div>
+            <div class="stat-row highscore-row">
+              <span class="stat-label">自己ベスト:</span>
+              <span id="best-score" class="stat-value">0</span>
+            </div>
+          </div>
+
+          <div class="gameover-actions">
+            <button id="btn-restart" class="btn btn-primary btn-pulse">もういちど遊ぶ</button>
+            <button id="btn-gameover-title" class="btn btn-secondary">タイトルへ</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pause Button (Small icon on screen) -->
+      <button id="btn-pause-trigger" class="btn-pause-trigger hidden" aria-label="ポーズ">
+        <span class="pause-icon"></span>
+      </button>
+
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
