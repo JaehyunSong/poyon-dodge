@@ -87,10 +87,11 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* Beautiful "明るい雰囲気" animated sky background in CSS */
   background: linear-gradient(to bottom, var(--color-sky-top) 0%, var(--color-sky-bottom) 70%, #d4f2db 100%);
   display: flex;
   flex-direction: column;
+  /* Apply Day/Night cycle animation (60s loop: 30s day, 30s night) */
+  animation: day-night-cycle 60s infinite ease-in-out;
 }
 
 /* Animated sky background items */
@@ -105,7 +106,39 @@ body {
   border-radius: 50%;
   box-shadow: 0 0 20px 8px var(--color-sun-glow);
   z-index: 0;
-  animation: sun-pulse 6s ease-in-out infinite alternate;
+  /* Sun/Moon transition animation */
+  animation: sun-moon-cycle 60s infinite ease-in-out;
+  transition: opacity 0.5s ease;
+}
+
+/* Weather Sky Gradients (Overrides Day/Night loop when active) */
+.game-screen.weather-snow {
+  animation: none;
+  background: linear-gradient(to bottom, #94a3b8 0%, #cbd5e1 70%, #e2e8f0 100%);
+}
+.game-screen.weather-snow::before {
+  opacity: 0.2; /* Dim sun behind snowy clouds */
+  animation: none;
+  background: #cbd5e1;
+  box-shadow: none;
+}
+
+.game-screen.weather-rain {
+  animation: none;
+  background: linear-gradient(to bottom, #475569 0%, #64748b 70%, #94a3b8 100%);
+}
+.game-screen.weather-rain::before {
+  opacity: 0; /* Hide sun completely in rain */
+  animation: none;
+}
+
+.game-screen.weather-thunder {
+  animation: none;
+  background: linear-gradient(to bottom, #1e293b 0%, #334155 70%, #475569 100%);
+}
+.game-screen.weather-thunder::before {
+  opacity: 0; /* Hide sun completely in storm */
+  animation: none;
 }
 
 /* Floating Clouds using CSS keyframe animation for a video-like feeling */
@@ -552,14 +585,29 @@ body {
 /* ==========================================================================
    ANIMATIONS
    ========================================================================== */
-@keyframes sun-pulse {
-  from {
-    transform: scale(1);
-    box-shadow: 0 0 20px 8px var(--color-sun-glow);
+@keyframes day-night-cycle {
+  0%, 100% {
+    /* Day Sky Gradient */
+    background: linear-gradient(to bottom, #76dbfc 0%, #bcedf6 70%, #d4f2db 100%);
   }
-  to {
-    transform: scale(1.05);
-    box-shadow: 0 0 28px 12px rgba(255, 209, 102, 0.6);
+  50% {
+    /* Night Sky Gradient */
+    background: linear-gradient(to bottom, #070b19 0%, #111827 70%, #1e1b4b 100%);
+  }
+}
+
+@keyframes sun-moon-cycle {
+  0%, 100% {
+    /* Sun */
+    background: var(--color-sun);
+    box-shadow: 0 0 20px 8px var(--color-sun-glow);
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    /* Moon */
+    background: #e2e8f0;
+    box-shadow: 0 0 15px 5px rgba(226, 232, 240, 0.4);
+    transform: translate(-10px, 10px) scale(0.9);
   }
 }
 

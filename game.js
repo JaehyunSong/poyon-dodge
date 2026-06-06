@@ -216,6 +216,28 @@ class SoundSynth {
     osc.start(now);
     osc.stop(now + 0.08);
   }
+
+  playThunder() {
+    this.init();
+    if (!this.ctx) return;
+    
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    
+    osc.type = 'sawtooth';
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    const now = this.ctx.currentTime;
+    osc.frequency.setValueAtTime(60 + Math.random() * 40, now);
+    osc.frequency.linearRampToValueAtTime(20, now + 0.85);
+    
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.linearRampToValueAtTime(0.001, now + 0.9);
+    
+    osc.start(now);
+    osc.stop(now + 0.9);
+  }
 }
 
 const sounds = new SoundSynth();
@@ -234,6 +256,16 @@ class GameEngine {
     
     this.images = {};
     this.unpoCanvas = null; // Programmatic canvas for poop sprite
+    
+    // Time tracking for day-night sync
+    this.pageLoadTime = Date.now();
+    this.nightFactor = 0;
+    
+    // Weather states
+    this.weather = 'NORMAL'; // NORMAL, SNOW, RAIN, THUNDER
+    this.lightningTimer = 0;
+    this.lightningFlash = 0;
+    this.weatherParticles = [];
     
     // Game state
     this.state = 'LOADING'; // LOADING, TITLE, PLAYING, PAUSED, GAMEOVER
@@ -256,6 +288,17 @@ class GameEngine {
     this.entities = [];
     this.particles = [];
     this.floatingTexts = [];
+    
+    // Generate static stars for night sky twinkling
+    this.stars = [];
+    for (let i = 0; i < 40; i++) {
+      this.stars.push({
+        x: Math.random() * CANVAS_WIDTH,
+        y: Math.random() * (CANVAS_HEIGHT - GRASS_HEIGHT - 200), // kept in upper sky
+        size: 1.5 + Math.random() * 2,
+        twinkleOffset: Math.random() * Math.PI * 2
+      });
+    }
     
     // Player settings
     this.player = {
@@ -511,6 +554,16 @@ class GameEngine {
 
     if (newState === 'TITLE') {
       document.getElementById('start-screen').classList.remove('hidden');
+      
+      // Reset weather overlays and variables when returning to title
+      const screenEl = document.getElementById('game-screen');
+      if (screenEl) {
+        screenEl.classList.remove('weather-snow', 'weather-rain', 'weather-thunder');
+      }
+      this.weather = 'NORMAL';
+      this.weatherParticles = [];
+      this.lightningFlash = 0;
+      
       // Clear out play variables
       this.entities = [];
       this.particles = [];
@@ -560,6 +613,29 @@ class GameEngine {
     this.player.invulnerable = false;
     this.player.invulnTime = 0;
     this.player.dirState = 'idle';
+    
+    // Roll for weather: 5% Snow, 5% Rain, 5% Thunder, 85% Normal
+    const weatherRoll = Math.random();
+    const screenEl = document.getElementById('game-screen');
+    if (screenEl) {
+      screenEl.classList.remove('weather-snow', 'weather-rain', 'weather-thunder');
+    }
+    
+    if (weatherRoll < 0.05) {
+      this.weather = 'SNOW';
+      if (screenEl) screenEl.classList.add('weather-snow');
+    } else if (weatherRoll < 0.10) {
+      this.weather = 'RAIN';
+      if (screenEl) screenEl.classList.add('weather-rain');
+    } else if (weatherRoll < 0.15) {
+      this.weather = 'THUNDER';
+      if (screenEl) screenEl.classList.add('weather-thunder');
+      this.lightningTimer = 3000 + Math.random() * 4000; // 3 to 7 seconds first strike
+      this.lightningFlash = 0;
+    } else {
+      this.weather = 'NORMAL';
+    }
+    this.weatherParticles = [];
     
     this.startTime = Date.now();
     this.lastTimeIncrement = Date.now();
@@ -880,7 +956,64 @@ class GameEngine {
   // ==========================================================================
   update(dt) {
     const now = Date.now();
+    const timeScale = dt / 16.666; // Normalized to 60fps speed
     
+    // Update Weather Particles spawning
+    if (this.weather === 'SNOW') {
+      if (Math.random() < 0.35) {
+        this.weatherParticles.push({
+          type: 'snow',
+          x: Math.random() * (CANVAS_WIDTH + 100),
+          y: -10,
+          vx: -0.5 - Math.random() * 1.0,
+          vy: 1.0 + Math.random() * 1.5,
+          size: 2 + Math.random() * 3
+        });
+      }
+    } else if (this.weather === 'RAIN' || this.weather === 'THUNDER') {
+      const spawnRate = this.weather === 'THUNDER' ? 2 : 1;
+      for (let r = 0; r < spawnRate; r++) {
+        if (Math.random() < 0.8) {
+          this.weatherParticles.push({
+            type: 'rain',
+            x: Math.random() * (CANVAS_WIDTH + 150) - 50,
+            y: -20,
+            vx: -1.5 - Math.random() * 1.0,
+            vy: 14.0 + Math.random() * 5.0,
+            size: 1 + Math.random() * 1,
+            len: 10 + Math.random() * 10
+          });
+        }
+      }
+    }
+
+    // Update Weather Particles position
+    for (let i = this.weatherParticles.length - 1; i >= 0; i--) {
+      const p = this.weatherParticles[i];
+      p.x += p.vx * timeScale;
+      p.y += p.vy * timeScale;
+      
+      // Remove offscreen
+      if (p.y > CANVAS_HEIGHT || p.x < -30) {
+        this.weatherParticles.splice(i, 1);
+      }
+    }
+
+    // Handle lightning strikes
+    if (this.weather === 'THUNDER') {
+      this.lightningTimer -= dt;
+      if (this.lightningTimer <= 0) {
+        this.lightningFlash = 150 + Math.random() * 200; // Flash duration
+        this.triggerShake(18, 300); // Thunder rumble shake
+        sounds.playThunder();
+        this.lightningTimer = 5000 + Math.random() * 8000; // Next flash in 5-13 seconds
+      }
+    }
+
+    if (this.lightningFlash > 0) {
+      this.lightningFlash -= dt;
+    }
+
     // Scale difficulty parameters
     this.scaleDifficulty();
 
@@ -1011,11 +1144,28 @@ class GameEngine {
   }
 
   draw() {
+    const elapsedSeconds = (Date.now() - this.pageLoadTime) / 1000;
+    this.nightFactor = (1 - Math.cos(2 * Math.PI * elapsedSeconds / 60)) / 2;
+
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     
     // Save context for camera shake
     this.ctx.save();
     this.ctx.translate(this.shake.x, this.shake.y);
+
+    // Draw Stars (twinkling in lockstep with day-night cycle)
+    if (this.nightFactor > 0) {
+      this.ctx.save();
+      this.ctx.globalAlpha = this.nightFactor;
+      this.stars.forEach(star => {
+        const twinkle = 0.4 + 0.6 * Math.sin((Date.now() / 300) + star.twinkleOffset);
+        this.ctx.fillStyle = `rgba(255, 255, 255, ${twinkle})`;
+        this.ctx.beginPath();
+        this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        this.ctx.fill();
+      });
+      this.ctx.restore();
+    }
 
     // 1. Draw Environment Wind Particles (Background layer)
     this.particles.forEach(p => {
@@ -1024,6 +1174,27 @@ class GameEngine {
         this.ctx.fillRect(p.x, p.y, p.size, p.size);
       }
     });
+
+    // Draw Weather Particles (behind objects but in front of wind sparkles)
+    if (this.weatherParticles && this.weatherParticles.length > 0) {
+      this.ctx.save();
+      this.weatherParticles.forEach(p => {
+        if (p.type === 'snow') {
+          this.ctx.fillStyle = '#ffffff';
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          this.ctx.fill();
+        } else if (p.type === 'rain') {
+          this.ctx.strokeStyle = 'rgba(174, 219, 240, 0.45)';
+          this.ctx.lineWidth = p.size;
+          this.ctx.beginPath();
+          this.ctx.moveTo(p.x, p.y);
+          this.ctx.lineTo(p.x + p.vx * 0.8, p.y + p.vy * 0.8);
+          this.ctx.stroke();
+        }
+      });
+      this.ctx.restore();
+    }
 
     // 2. Draw Falling Objects
     this.entities.forEach(entity => {
@@ -1131,6 +1302,15 @@ class GameEngine {
     
     this.ctx.globalAlpha = 1.0;
     this.ctx.restore();
+
+    // 7. Draw Lightning Flash (Foreground overlay screen flash, outside camera shake context)
+    if (this.lightningFlash > 0) {
+      this.ctx.save();
+      const flashOpacity = 0.5 + Math.random() * 0.3;
+      this.ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity})`;
+      this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      this.ctx.restore();
+    }
   }
 
   // Main game loop
@@ -1154,7 +1334,24 @@ class GameEngine {
   }
 
   drawTitleBackground() {
+    const elapsedSeconds = (Date.now() - this.pageLoadTime) / 1000;
+    this.nightFactor = (1 - Math.cos(2 * Math.PI * elapsedSeconds / 60)) / 2;
+
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    
+    // Draw Stars (twinkling at night on Title screen too)
+    if (this.nightFactor > 0) {
+      this.ctx.save();
+      this.ctx.globalAlpha = this.nightFactor;
+      this.stars.forEach(star => {
+        const twinkle = 0.4 + 0.6 * Math.sin((Date.now() / 300) + star.twinkleOffset);
+        this.ctx.fillStyle = `rgba(255, 255, 255, ${twinkle})`;
+        this.ctx.beginPath();
+        this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        this.ctx.fill();
+      });
+      this.ctx.restore();
+    }
     
     // Spawn wind particles even in title screen
     this.spawnWindParticles();
