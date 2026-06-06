@@ -1145,7 +1145,9 @@ class GameEngine {
 
   draw() {
     const elapsedSeconds = (Date.now() - this.pageLoadTime) / 1000;
-    this.nightFactor = (1 - Math.cos(2 * Math.PI * elapsedSeconds / 180)) / 2;
+    const timeInCycle = elapsedSeconds % 120;
+    const distFromMidnight = Math.abs(timeInCycle - 60);
+    this.nightFactor = distFromMidnight < 40 ? (1 + Math.cos(Math.PI * distFromMidnight / 40)) / 2 : 0;
 
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     
@@ -1154,7 +1156,7 @@ class GameEngine {
     this.ctx.translate(this.shake.x, this.shake.y);
 
     // Draw Stars (twinkling in lockstep with day-night cycle)
-    if (this.nightFactor > 0) {
+    if (this.nightFactor > 0 && this.weather === 'NORMAL') {
       this.ctx.save();
       this.ctx.globalAlpha = this.nightFactor;
       this.stars.forEach(star => {
@@ -1335,12 +1337,14 @@ class GameEngine {
 
   drawTitleBackground() {
     const elapsedSeconds = (Date.now() - this.pageLoadTime) / 1000;
-    this.nightFactor = (1 - Math.cos(2 * Math.PI * elapsedSeconds / 180)) / 2;
+    const timeInCycle = elapsedSeconds % 120;
+    const distFromMidnight = Math.abs(timeInCycle - 60);
+    this.nightFactor = distFromMidnight < 40 ? (1 + Math.cos(Math.PI * distFromMidnight / 40)) / 2 : 0;
 
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     
     // Draw Stars (twinkling at night on Title screen too)
-    if (this.nightFactor > 0) {
+    if (this.nightFactor > 0 && this.weather === 'NORMAL') {
       this.ctx.save();
       this.ctx.globalAlpha = this.nightFactor;
       this.stars.forEach(star => {

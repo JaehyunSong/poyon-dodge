@@ -90,8 +90,8 @@ body {
   background: linear-gradient(to bottom, var(--color-sky-top) 0%, var(--color-sky-bottom) 70%, #d4f2db 100%);
   display: flex;
   flex-direction: column;
-  /* Apply Day/Night cycle animation (180s loop: 90s day, 90s night) */
-  animation: day-night-cycle 180s infinite ease-in-out;
+  /* Apply Day/Night cycle animation (120s loop: start at Noon, 20s per phase) */
+  animation: day-night-cycle 120s infinite ease-in-out;
 }
 
 /* Animated sky background items */
@@ -107,7 +107,7 @@ body {
   box-shadow: 0 0 20px 8px var(--color-sun-glow);
   z-index: 0;
   /* Sun/Moon transition animation */
-  animation: sun-moon-cycle 180s infinite ease-in-out;
+  animation: sun-moon-cycle 120s infinite ease-in-out;
   transition: opacity 0.5s ease;
 }
 
@@ -586,28 +586,88 @@ body {
    ANIMATIONS
    ========================================================================== */
 @keyframes day-night-cycle {
+  /* 0%, 100%: 昼 (Day/Noon) */
   0%, 100% {
-    /* Day Sky Gradient */
-    background: linear-gradient(to bottom, #76dbfc 0%, #bcedf6 70%, #d4f2db 100%);
+    background: linear-gradient(to bottom, #52c0f2 0%, #a5f3fc 70%, #d4f2db 100%);
   }
+  /* 16.67%: 日没 (Sunset) */
+  16.67% {
+    background: linear-gradient(to bottom, #e0533c 0%, #fdb813 70%, #eae2b7 100%);
+  }
+  /* 33.33%: 夕方 (Twilight) */
+  33.33% {
+    background: linear-gradient(to bottom, #3c1053 0%, #ad5389 70%, #ffd166 100%);
+  }
+  /* 50%: 夜 (Night/Midnight) */
   50% {
-    /* Night Sky Gradient */
-    background: linear-gradient(to bottom, #070b19 0%, #111827 70%, #1e1b4b 100%);
+    background: linear-gradient(to bottom, #060814 0%, #111625 70%, #1e1b4b 100%);
+  }
+  /* 66.67%: 日の出 (Sunrise) */
+  66.67% {
+    background: linear-gradient(to bottom, #2b1055 0%, #ff7e5f 70%, #feb47b 100%);
+  }
+  /* 83.33%: 朝 (Morning) */
+  83.33% {
+    background: linear-gradient(to bottom, #74b9ff 0%, #ffeaa7 70%, #d4f2db 100%);
   }
 }
 
 @keyframes sun-moon-cycle {
+  /* 0%, 100%: 昼 (Day/Noon) - Sun high & bright */
   0%, 100% {
-    /* Sun */
-    background: var(--color-sun);
-    box-shadow: 0 0 20px 8px var(--color-sun-glow);
+    background: #ffd166;
+    box-shadow: 0 0 20px 8px rgba(255, 209, 102, 0.4);
     transform: translate(0, 0) scale(1);
+    opacity: 1;
   }
-  50% {
-    /* Moon */
+  /* 16.67%: 日没 (Sunset) - Sun low, large, reddish */
+  16.67% {
+    background: #ff5e36;
+    box-shadow: 0 0 30px 10px rgba(255, 94, 54, 0.5);
+    transform: translate(10px, 80px) scale(1.1);
+    opacity: 0.9;
+  }
+  /* 25%: Sun is below horizon, hidden */
+  25% {
+    background: #ff5e36;
+    box-shadow: none;
+    transform: translate(20px, 150px) scale(0.5);
+    opacity: 0;
+  }
+  /* 33.33%: 夕方 (Twilight) - Moon rising low, pale blue/white */
+  33.33% {
     background: #e2e8f0;
     box-shadow: 0 0 15px 5px rgba(226, 232, 240, 0.4);
-    transform: translate(-10px, 10px) scale(0.9);
+    transform: translate(-10px, 80px) scale(0.9);
+    opacity: 0.6;
+  }
+  /* 50%: 夜 (Night/Midnight) - Moon high & bright */
+  50% {
+    background: #ffffff;
+    box-shadow: 0 0 25px 8px rgba(255, 255, 255, 0.6);
+    transform: translate(-20px, 0) scale(1.0);
+    opacity: 1;
+  }
+  /* 66.67%: 日の出 (Sunrise) - Moon setting low, dim */
+  66.67% {
+    background: #e2e8f0;
+    box-shadow: 0 0 15px 5px rgba(226, 232, 240, 0.2);
+    transform: translate(-30px, 80px) scale(0.9);
+    opacity: 0.5;
+  }
+  /* 75%: Moon is below horizon, hidden */
+  75% {
+    background: #e2e8f0;
+    box-shadow: none;
+    transform: translate(-40px, 150px) scale(0.5);
+    opacity: 0;
+  }
+  /* 83.33%: 朝 (Morning) - Sun rising low, bright yellow */
+  83.33% {
+    background: #ffd166;
+    box-shadow: 0 0 20px 8px rgba(255, 209, 102, 0.3);
+    transform: translate(-10px, 50px) scale(0.95);
+    opacity: 0.8;
   }
 }
 
