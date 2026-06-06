@@ -32,11 +32,11 @@ const ASSET_PATHS = {
 
 // Falling object configurations
 const OBJECT_TYPES = {
-  song:   { name: 'ソン先生', points: 10,  lifeChg: 1,  prob: 0.09, speedMult: 1.0,  size: { w: 64, h: 55 } },
+  song:   { name: 'ソン先生', points: 10,  lifeChg: 1,  prob: 0.05, speedMult: 1.0,  size: { w: 64, h: 55 } },
   ponyan: { name: 'ぽにゃん', points: -3,  lifeChg: -1, prob: 0.30, speedMult: 0.95, size: { w: 60, h: 51 } },
   pomu:   { name: 'ぽむ',     points: -2,  lifeChg: -1, prob: 0.30, speedMult: 1.05, size: { w: 60, h: 51 } },
   pomi:   { name: 'ぽみ',     points: -1,  lifeChg: -1, prob: 0.30, speedMult: 0.9,  size: { w: 60, h: 51 } },
-  unpo:   { name: 'うんぽ',   points: -10, lifeChg: -1, prob: 0.01, speedMult: 1.25, size: { w: 45, h: 45 } }
+  unpo:   { name: 'うんぽ',   points: -10, lifeChg: -1, prob: 0.05, speedMult: 1.25, size: { w: 45, h: 45 } }
 };
 
 // Poop 16x16 Pixel Matrix for programmatic generation
@@ -637,43 +637,58 @@ class GameEngine {
     }
 
     const config = OBJECT_TYPES[selectedType];
-    const width = config.size.w;
-    const height = config.size.h;
+    
+    // Roll for individual independent gimmicks
+    const isFast = Math.random() < 0.20; // 20% chance to be extra fast
+    const isGhost = Math.random() < 0.15; // 15% chance to be semi-transparent
+    
+    let sizeScale = 1.0;
+    if (Math.random() < 0.20) {
+      sizeScale = 1.2 + Math.random() * 0.8; // 20% chance to be up to 2x size
+    }
+    
+    const isSpinning = Math.random() < 0.25; // 25% chance to spin
+    const isSwaying = Math.random() < 0.25; // 25% chance to sway like a leaf
+
+    const width = config.size.w * sizeScale;
+    const height = config.size.h * sizeScale;
 
     // Spawn at a random X coordinate, fully visible on screen
     const x = Math.random() * (CANVAS_WIDTH - width);
-    // Spawn just above the top edge
     const y = -height;
     
-    // Calculate speed based on difficulty level (with +/-20% speed variation)
+    // Calculate base speed based on difficulty level (with +/-20% speed variation)
     let speed = this.baseSpeed * (0.8 + Math.random() * 0.4) * config.speedMult;
+    
+    // Apply speed modifiers for gimmicks
+    if (isFast) {
+      speed *= 1.6;
+    }
+    if (isSwaying) {
+      speed *= 0.75; // Slower vertical speed for leaf fall (floats)
+    }
 
-    // Choose movement mode: 50% NORMAL, 25% SPIN, 25% LEAF
-    const modeRoll = Math.random();
-    let movementMode = 'NORMAL';
+    // Set rotation and sway parameters
     let rotation = 0;
     let rotationSpeed = 0;
+    if (isSpinning) {
+      // Spins at 0.02 to 0.06 rad/frame (approx 1 to 3 degrees/frame), random direction
+      rotationSpeed = (0.02 + Math.random() * 0.04) * (Math.random() < 0.5 ? 1 : -1);
+      rotation = Math.random() * Math.PI * 2;
+    } else if (isSwaying) {
+      rotation = Math.sin(0) * 0.4; // Initial rocking angle
+    }
+
     let swayRange = 0;
     let swaySpeed = 0;
     let swayAngle = 0;
-
-    if (modeRoll < 0.25) {
-      movementMode = 'SPIN';
-      // Spins at 0.02 to 0.06 rad/frame (approx 1 to 3 degrees per frame), random direction
-      rotationSpeed = (0.02 + Math.random() * 0.04) * (Math.random() < 0.5 ? 1 : -1);
-      rotation = Math.random() * Math.PI * 2; // Random starting angle
-    } else if (modeRoll < 0.50) {
-      movementMode = 'LEAF';
-      // Sway width amplitude: 25px to 55px
-      swayRange = 25 + Math.random() * 30;
-      // Sway frequency: 0.03 to 0.06 rad/frame
-      swaySpeed = 0.03 + Math.random() * 0.03;
+    if (isSwaying) {
+      // Random sway amplitude (width)
+      swayRange = 20 + Math.random() * 50; 
+      // Random sway speed (frequency)
+      swaySpeed = 0.03 + Math.random() * 0.04;
       // Random starting phase angle
       swayAngle = Math.random() * Math.PI * 2;
-      rotation = Math.sin(swayAngle) * 0.4;
-      
-      // Slower vertical speed for leaf fall (floats down at 75% speed)
-      speed *= 0.75;
     }
 
     this.entities.push({
@@ -684,7 +699,11 @@ class GameEngine {
       height,
       speed,
       name: config.name,
-      movementMode,
+      isFast,
+      isGhost,
+      sizeScale,
+      isSpinning,
+      isSwaying,
       rotation,
       rotationSpeed,
       swayRange,
@@ -694,16 +713,16 @@ class GameEngine {
     });
   }
 
-  // Increase difficulty over time
+  // Increase difficulty over time (doubles every 3 minutes / 180 seconds)
   scaleDifficulty() {
-    // Difficulty factor escalates with time survived up to 100 seconds
-    const factor = Math.min(1.0, this.elapsedPlayTime / 90000); // Max after 90 seconds
+    const elapsedSeconds = this.elapsedPlayTime / 1000;
+    const multiplier = Math.pow(2, elapsedSeconds / 180);
     
-    // Base speed goes from 5 to 11
-    this.baseSpeed = 5 + factor * 6;
+    // Base speed starts at 5 and doubles every 3 minutes
+    this.baseSpeed = 5 * multiplier;
     
-    // Spawn interval goes from 1200ms down to 350ms
-    this.spawnInterval = 1200 - factor * 850;
+    // Spawn rate doubles every 3 minutes (spawn interval is halved, min cap of 100ms)
+    this.spawnInterval = Math.max(100, 1200 / multiplier);
   }
 
   // AABB Collision check
@@ -906,16 +925,22 @@ class GameEngine {
       // Move downward
       entity.y += entity.speed * timeScale;
 
-      // Handle custom movement modes (Spin & Leaf)
-      if (entity.movementMode === 'SPIN') {
-        entity.rotation += entity.rotationSpeed * timeScale;
-      } else if (entity.movementMode === 'LEAF') {
+      // Handle swaying (leaf) gimmick
+      if (entity.isSwaying) {
         entity.swayAngle += entity.swaySpeed * timeScale;
         entity.x = entity.baseX + Math.sin(entity.swayAngle) * entity.swayRange;
         // Clamp to screen bounds
         entity.x = Math.max(0, Math.min(CANVAS_WIDTH - entity.width, entity.x));
-        // Rocking angle (looks like swaying leaf)
-        entity.rotation = Math.sin(entity.swayAngle) * 0.4;
+        
+        // Rock back and forth if not spinning
+        if (!entity.isSpinning) {
+          entity.rotation = Math.sin(entity.swayAngle) * 0.4;
+        }
+      }
+
+      // Handle spinning gimmick
+      if (entity.isSpinning) {
+        entity.rotation += entity.rotationSpeed * timeScale;
       }
 
       // Check collision
@@ -1006,6 +1031,13 @@ class GameEngine {
       if (img) {
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.save();
+        
+        // Apply ghost transparency gimmick (25% opacity)
+        if (entity.isGhost) {
+          this.ctx.globalAlpha = 0.25;
+        } else {
+          this.ctx.globalAlpha = 1.0;
+        }
         
         // Translate to the center of the entity
         this.ctx.translate(entity.x + entity.width / 2, entity.y + entity.height / 2);
