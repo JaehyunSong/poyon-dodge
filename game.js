@@ -433,41 +433,64 @@ class GameEngine {
   // ==========================================================================
   // 5. UI INTERACTIVE ACTIONS
   // ==========================================================================
+  // Helper to bind buttons for responsive instant touch on mobiles and mouse clicks on desktop
+  setupMobileButton(buttonId, callback) {
+    const btn = document.getElementById(buttonId);
+    if (!btn) return;
+    
+    let touchTriggered = false;
+    
+    // Mobile Touch End (instantly responds, bypassing 300ms delays)
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      touchTriggered = true;
+      sounds.init(); // Initialize/Unlock Web Audio context on iOS Safari
+      sounds.playClick(); // Play button click SFX
+      callback();
+    }, { passive: false });
+    
+    // Desktop / Fallback Click
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (touchTriggered) {
+        touchTriggered = false;
+        return;
+      }
+      sounds.init(); // Initialize/Unlock Web Audio context
+      sounds.playClick(); // Play button click SFX
+      callback();
+    });
+  }
+
   setupUIEvents() {
     // Start game button
-    document.getElementById('btn-start').addEventListener('click', () => {
-      sounds.playClick();
+    this.setupMobileButton('btn-start', () => {
       this.startGame();
     });
 
     // Pause trigger button
-    document.getElementById('btn-pause-trigger').addEventListener('click', (e) => {
-      e.stopPropagation();
-      sounds.playClick();
+    this.setupMobileButton('btn-pause-trigger', () => {
       this.togglePause();
     });
 
     // Resume button
-    document.getElementById('btn-resume').addEventListener('click', () => {
-      sounds.playClick();
+    this.setupMobileButton('btn-resume', () => {
       this.togglePause();
     });
 
     // Back to title from Pause screen
-    document.getElementById('btn-to-title').addEventListener('click', () => {
-      sounds.playClick();
+    this.setupMobileButton('btn-to-title', () => {
       this.transitionTo('TITLE');
     });
 
     // Restart button from Game Over
-    document.getElementById('btn-restart').addEventListener('click', () => {
-      sounds.playClick();
+    this.setupMobileButton('btn-restart', () => {
       this.startGame();
     });
 
     // Back to title from Game Over
-    document.getElementById('btn-gameover-title').addEventListener('click', () => {
-      sounds.playClick();
+    this.setupMobileButton('btn-gameover-title', () => {
       this.transitionTo('TITLE');
     });
   }
