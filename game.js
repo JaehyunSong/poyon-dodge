@@ -6,7 +6,7 @@
 const TRANSLATIONS = {
   ja: {
     "title": "ぽよんぽよんのよけよけ大作戦 | Poyonpoyon Dodge Game",
-    "meta-desc": "空から降ってくるモノを避けて、ソン先生をキャッチしよう！ぽよんぽよんが主人公のドット絵アクションゲーム。",
+    "meta-desc": "空から降ってくる猫たちを避けて、ソン先生をキャッチしよう！ぽよんぽよんが主人公のドット絵アクションゲーム。",
     "loading-status": "アセットを読み込み中...",
     "title-sub": "ぽよんぽよんの",
     "title-main": "よけよけ大作戦",
@@ -14,6 +14,7 @@ const TRANSLATIONS = {
     "instruction-1": "左右にドラッグ（または左右矢印キー）でぽよんぽよんを動かそう！",
     "instruction-2": "をキャッチすると <strong>残機+1！</strong>",
     "instruction-3": "に当たると <strong>ダメージ！</strong>",
+    "instruction-or": "や",
     "instruction-4": "時間経過とともに難易度アップ！",
     "btn-start": "スタート",
     "btn-ranking": "ランキング",
@@ -43,7 +44,7 @@ const TRANSLATIONS = {
   },
   ko: {
     "title": "뽀용뽀용의 비사이로막가 대작전 | Poyonpoyon Dodge Game",
-    "meta-desc": "하늘에서 떨어지는 물건들을 피하며 송센세를 잡으세요! 뽀용뽀용이 주인공인 도트 액션 게임.",
+    "meta-desc": "하늘에서 떨어지는 고양이들을 피하며 송센세를 잡으세요! 뽀용뽀용이 주인공인 도트 액션 게임.",
     "loading-status": "에셋 불러오는 중...",
     "title-sub": "뽀용뽀용의",
     "title-main": "비사이로막가 대작전",
@@ -51,6 +52,7 @@ const TRANSLATIONS = {
     "instruction-1": "좌우로 드래그 (또는 좌우 화살표 키) 하여 뽀용뽀용을 움직이세요!",
     "instruction-2": "을 캐치하면 <strong>목숨+1!</strong>",
     "instruction-3": "에 부딪히면 <strong>대미지!</strong>",
+    "instruction-or": " 또는 ",
     "instruction-4": "시간이 지날수록 난이도 업!",
     "btn-start": "스타트",
     "btn-ranking": "랭킹",
@@ -547,9 +549,12 @@ class GameEngine {
 
       // Handle transition to score screen on any key press during Game Over animation
       if (this.state === 'GAMEOVER_ANIM') {
-        e.preventDefault();
-        sounds.playClick();
-        this.goToScoreScreen();
+        // Enforce 500ms minimum animation display time on keypresses
+        if (this.gameoverAnimElapsed > 500) {
+          e.preventDefault();
+          sounds.playClick();
+          this.goToScoreScreen();
+        }
         return;
       }
 
@@ -611,8 +616,11 @@ class GameEngine {
 
     this.canvas.addEventListener('pointerdown', (e) => {
       if (this.state === 'GAMEOVER_ANIM') {
-        sounds.playClick();
-        this.goToScoreScreen();
+        // Enforce 500ms minimum animation display time on taps
+        if (this.gameoverAnimElapsed > 500) {
+          sounds.playClick();
+          this.goToScoreScreen();
+        }
         return;
       }
       this.canvas.setPointerCapture(e.pointerId);
@@ -1064,6 +1072,7 @@ class GameEngine {
 
   // Update loop for the Game Over dramatic filling animation
   updateGameOverAnim(dt) {
+    this.gameoverAnimElapsed = (this.gameoverAnimElapsed || 0) + dt;
     const timeScale = dt / 16.666;
 
     // Spawn new objects rapidly if the screen is not completely filled yet
@@ -1230,6 +1239,7 @@ class GameEngine {
     // Initialize Game Over Animation properties
     this.columnHeights = Array(9).fill(CANVAS_HEIGHT);
     this.gameoverSpawnAccumulator = 0;
+    this.gameoverAnimElapsed = 0;
 
     this.transitionTo('GAMEOVER_ANIM');
   }
@@ -1358,7 +1368,7 @@ class GameEngine {
       if (table) table.classList.remove('hidden');
 
       if (rankings.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4">${this.i18n('no-data')}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3">${this.i18n('no-data')}</td></tr>`;
         return;
       }
 
@@ -1375,7 +1385,6 @@ class GameEngine {
           <td class="${rankClass}">${rank}</td>
           <td>${this.escapeHTML(entry.name)}</td>
           <td>${entry.score}</td>
-          <td>${entry.time}${this.i18n('time-unit')}</td>
         `;
         tbody.appendChild(tr);
       });
