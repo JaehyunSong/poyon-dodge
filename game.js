@@ -3,6 +3,81 @@
  * Core Game Logic File
  */
 
+const TRANSLATIONS = {
+  ja: {
+    "title": "ぽよんぽよんのよけよけ大作戦 | Poyonpoyon Dodge Game",
+    "meta-desc": "空から降ってくるモノを避けて、ソン先生をキャッチしよう！ぽよんぽよんが主人公のドット絵アクションゲーム。",
+    "loading-status": "アセットを読み込み中...",
+    "title-sub": "ぽよんぽよんの",
+    "title-main": "よけよけ大作戦",
+    "instructions-title": "あそびかた",
+    "instruction-1": "左右にドラッグ（または左右矢印キー）でぽよんぽよんを動かそう！",
+    "instruction-2": "をキャッチすると <strong>残機+1！</strong>",
+    "instruction-3": "に当たると <strong>ダメージ！</strong>",
+    "instruction-4": "時間経過とともに難易度アップ！",
+    "btn-start": "スタート",
+    "btn-ranking": "ランキング",
+    "pause-title": "一時停止中",
+    "btn-resume": "ゲームに戻る",
+    "btn-to-title": "タイトルへ",
+    "score-label": "スコア:",
+    "time-label": "生存時間:",
+    "best-score-label": "自己ベスト:",
+    "btn-restart": "もういちど遊ぶ",
+    "registration-label": "オンラインランキングに登録",
+    "btn-submit": "送信",
+    "ranking-loading": "読み込み中...",
+    "th-rank": "順位",
+    "th-name": "なまえ",
+    "th-score": "スコア",
+    "th-time": "時間",
+    "no-data": "データがありません。最初の登録者になろう！",
+    "float-life-up": "残機 +1",
+    "float-points-suffix": "点",
+    "status-submitting": "送信中...",
+    "status-success": "登録完了しました！",
+    "status-fail": "送信に失敗しました。再試行してください。",
+    "status-error": "ランキングの取得に失敗しました。",
+    "time-unit": "秒"
+  },
+  ko: {
+    "title": "뽀용뽀용의 비사이로막가 대작전 | Poyonpoyon Dodge Game",
+    "meta-desc": "하늘에서 떨어지는 물건들을 피하며 송센세를 잡으세요! 뽀용뽀용이 주인공인 도트 액션 게임.",
+    "loading-status": "에셋 불러오는 중...",
+    "title-sub": "뽀용뽀용의",
+    "title-main": "비사이로막가 대작전",
+    "instructions-title": "게임 방법",
+    "instruction-1": "좌우로 드래그 (또는 좌우 화살표 키) 하여 뽀용뽀용을 움직이세요!",
+    "instruction-2": "을 캐치하면 <strong>목숨+1!</strong>",
+    "instruction-3": "에 부딪히면 <strong>대미지!</strong>",
+    "instruction-4": "시간이 지날수록 난이도 업!",
+    "btn-start": "스타트",
+    "btn-ranking": "랭킹",
+    "pause-title": "일시정지 중",
+    "btn-resume": "게임으로 돌아가기",
+    "btn-to-title": "타이틀로",
+    "score-label": "스코어:",
+    "time-label": "생존 시간:",
+    "best-score-label": "최고 기록:",
+    "btn-restart": "다시 하기",
+    "registration-label": "온라인 랭킹에 등록",
+    "btn-submit": "전송",
+    "ranking-loading": "불러오는 중...",
+    "th-rank": "순위",
+    "th-name": "이름",
+    "th-score": "스코어",
+    "th-time": "시간",
+    "no-data": "데이터가 없습니다. 첫 번째 등록자가 되어보세요!",
+    "float-life-up": "목숨 +1",
+    "float-points-suffix": "점",
+    "status-submitting": "전송 중...",
+    "status-success": "등록 완료되었습니다!",
+    "status-fail": "전송에 실패했습니다. 다시 시도해주세요.",
+    "status-error": "랭킹을 불러오지 못했습니다.",
+    "time-unit": "초"
+  }
+};
+
 // ==========================================================================
 // 1. CONFIGURATION & CONSTANTS
 // ==========================================================================
@@ -33,31 +108,31 @@ const ASSET_PATHS = {
 
 // Falling object configurations
 const OBJECT_TYPES = {
-  song:   { name: 'ソン先生', points: 10,  lifeChg: 1,  prob: 0.05, speedMult: 1.0,  size: { w: 64, h: 55 } },
-  ponyan: { name: 'ぽにゃん', points: -3,  lifeChg: -1, prob: 0.30, speedMult: 0.95, size: { w: 60, h: 51 } },
-  pomu:   { name: 'ぽむ',     points: -2,  lifeChg: -1, prob: 0.30, speedMult: 1.05, size: { w: 60, h: 51 } },
-  pomi:   { name: 'ぽみ',     points: -1,  lifeChg: -1, prob: 0.30, speedMult: 0.9,  size: { w: 60, h: 51 } },
-  unpo:   { name: 'うんぽ',   points: -10, lifeChg: -1, prob: 0.05, speedMult: 1.25, size: { w: 45, h: 45 } }
+  song: { name: 'ソン先生', points: 10, lifeChg: 1, prob: 0.05, speedMult: 1.0, size: { w: 64, h: 55 } },
+  ponyan: { name: 'ぽにゃん', points: -3, lifeChg: -1, prob: 0.30, speedMult: 0.95, size: { w: 60, h: 51 } },
+  pomu: { name: 'ぽむ', points: -2, lifeChg: -1, prob: 0.30, speedMult: 1.05, size: { w: 60, h: 51 } },
+  pomi: { name: 'ぽみ', points: -1, lifeChg: -1, prob: 0.30, speedMult: 0.9, size: { w: 60, h: 51 } },
+  unpo: { name: 'うんぽ', points: -10, lifeChg: -1, prob: 0.05, speedMult: 1.25, size: { w: 45, h: 45 } }
 };
 
 // Poop 16x16 Pixel Matrix for programmatic generation
 const POOP_MATRIX = [
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,1,2,1,0,0,0,0,0,0,0],
-  [0,0,0,0,0,1,2,2,3,1,0,0,0,0,0,0],
-  [0,0,0,0,0,1,2,3,4,1,0,0,0,0,0,0],
-  [0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0],
-  [0,0,0,1,2,2,2,2,3,3,4,1,0,0,0,0],
-  [0,0,1,2,2,3,3,3,3,4,4,4,1,0,0,0],
-  [0,0,1,3,3,3,3,4,4,4,4,4,1,0,0,0],
-  [0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-  [1,2,2,2,2,2,2,3,3,3,3,4,4,4,1,0],
-  [1,2,2,3,3,3,3,3,3,4,4,4,4,4,1,0],
-  [1,3,3,3,3,3,3,3,4,4,4,4,4,4,1,0],
-  [1,3,4,4,4,4,4,4,4,4,4,4,4,4,1,0],
-  [0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 2, 2, 3, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 2, 3, 4, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 2, 2, 2, 2, 3, 3, 4, 1, 0, 0, 0, 0],
+  [0, 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 1, 0, 0, 0],
+  [0, 0, 1, 3, 3, 3, 3, 4, 4, 4, 4, 4, 1, 0, 0, 0],
+  [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+  [1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 1, 0],
+  [1, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 1, 0],
+  [1, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 1, 0],
+  [1, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1, 0],
+  [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ];
 
 // Color mapping for poop sprite
@@ -86,23 +161,23 @@ class SoundSynth {
   playCoin() {
     this.init();
     if (!this.ctx) return;
-    
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    
+
     osc.type = 'triangle';
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-    
+
     const now = this.ctx.currentTime;
     osc.frequency.setValueAtTime(523.25, now); // C5
     osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
     osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
     osc.frequency.setValueAtTime(1046.50, now + 0.24); // C6
-    
+
     gain.gain.setValueAtTime(0.15, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
-    
+
     osc.start(now);
     osc.stop(now + 0.5);
   }
@@ -110,21 +185,21 @@ class SoundSynth {
   playHit() {
     this.init();
     if (!this.ctx) return;
-    
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    
+
     osc.type = 'sawtooth';
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-    
+
     const now = this.ctx.currentTime;
     osc.frequency.setValueAtTime(220, now); // A3
     osc.frequency.exponentialRampToValueAtTime(60, now + 0.25); // Slur down
-    
+
     gain.gain.setValueAtTime(0.2, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-    
+
     osc.start(now);
     osc.stop(now + 0.3);
   }
@@ -132,21 +207,21 @@ class SoundSynth {
   playUnpo() {
     this.init();
     if (!this.ctx) return;
-    
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    
+
     osc.type = 'sawtooth';
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-    
+
     const now = this.ctx.currentTime;
     osc.frequency.setValueAtTime(100, now);
     osc.frequency.linearRampToValueAtTime(40, now + 0.4);
-    
+
     gain.gain.setValueAtTime(0.3, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-    
+
     osc.start(now);
     osc.stop(now + 0.4);
   }
@@ -154,21 +229,21 @@ class SoundSynth {
   playPowerup() {
     this.init();
     if (!this.ctx) return;
-    
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    
+
     osc.type = 'sine';
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-    
+
     const now = this.ctx.currentTime;
     osc.frequency.setValueAtTime(330, now); // E4
     osc.frequency.exponentialRampToValueAtTime(660, now + 0.3); // Octave sweep
-    
+
     gain.gain.setValueAtTime(0.2, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-    
+
     osc.start(now);
     osc.stop(now + 0.35);
   }
@@ -176,24 +251,24 @@ class SoundSynth {
   playGameOver() {
     this.init();
     if (!this.ctx) return;
-    
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    
+
     osc.type = 'square';
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-    
+
     const now = this.ctx.currentTime;
     osc.frequency.setValueAtTime(392.00, now); // G4
     osc.frequency.setValueAtTime(349.23, now + 0.2); // F4
     osc.frequency.setValueAtTime(311.13, now + 0.4); // Eb4
     osc.frequency.setValueAtTime(261.63, now + 0.6); // C4
-    
+
     gain.gain.setValueAtTime(0.15, now);
     gain.gain.setValueAtTime(0.15, now + 0.6);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-    
+
     osc.start(now);
     osc.stop(now + 1.2);
   }
@@ -201,19 +276,19 @@ class SoundSynth {
   playClick() {
     this.init();
     if (!this.ctx) return;
-    
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    
+
     osc.type = 'sine';
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-    
+
     const now = this.ctx.currentTime;
     osc.frequency.setValueAtTime(600, now);
     gain.gain.setValueAtTime(0.1, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-    
+
     osc.start(now);
     osc.stop(now + 0.08);
   }
@@ -221,21 +296,21 @@ class SoundSynth {
   playThunder() {
     this.init();
     if (!this.ctx) return;
-    
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    
+
     osc.type = 'sawtooth';
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-    
+
     const now = this.ctx.currentTime;
     osc.frequency.setValueAtTime(60 + Math.random() * 40, now);
     osc.frequency.linearRampToValueAtTime(20, now + 0.85);
-    
+
     gain.gain.setValueAtTime(0.35, now);
     gain.gain.linearRampToValueAtTime(0.001, now + 0.9);
-    
+
     osc.start(now);
     osc.stop(now + 0.9);
   }
@@ -250,25 +325,25 @@ class GameEngine {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
     this.ctx = this.canvas.getContext('2d');
-    
+
     // Set internal canvas resolution
     this.canvas.width = CANVAS_WIDTH;
     this.canvas.height = CANVAS_HEIGHT;
-    
+
     this.images = {};
     this.unpoCanvas = null; // Programmatic canvas for poop sprite
     this.activeDefaultName = '';
-    
+
     // Time tracking for day-night sync
     this.pageLoadTime = Date.now();
     this.nightFactor = 0;
-    
+
     // Weather states
     this.weather = 'NORMAL'; // NORMAL, SNOW, RAIN, THUNDER
     this.lightningTimer = 0;
     this.lightningFlash = 0;
     this.weatherParticles = [];
-    
+
     // Game state
     this.state = 'LOADING'; // LOADING, TITLE, PLAYING, PAUSED, GAMEOVER
     this.score = 0;
@@ -277,7 +352,7 @@ class GameEngine {
     this.timeSurvived = 0; // in seconds
     this.lastTimeIncrement = 0;
     this.isNewHighScore = false;
-    
+
     // Timing & Spawn control
     this.lastSpawnTime = 0;
     this.spawnInterval = 1200; // ms
@@ -285,12 +360,12 @@ class GameEngine {
     this.startTime = 0;
     this.elapsedPlayTime = 0; // ms
     this.lastFrameTime = 0;
-    
+
     // Collections
     this.entities = [];
     this.particles = [];
     this.floatingTexts = [];
-    
+
     // Generate static stars for night sky twinkling
     this.stars = [];
     for (let i = 0; i < 40; i++) {
@@ -301,7 +376,7 @@ class GameEngine {
         twinkleOffset: Math.random() * Math.PI * 2
       });
     }
-    
+
     // Player settings
     this.player = {
       x: CANVAS_WIDTH / 2 - 30,
@@ -318,7 +393,7 @@ class GameEngine {
       invulnTime: 0, // ms remaining
       flashState: true
     };
-    
+
     // Visual Shake effect
     this.shake = {
       duration: 0,
@@ -326,22 +401,28 @@ class GameEngine {
       x: 0,
       y: 0
     };
-    
+
     // Setup inputs & event listeners
     this.setupInputs();
+
+    // Initialize language (Default to Korean 'ko' as requested)
+    const savedLang = localStorage.getItem('pypy_lang');
+    this.lang = savedLang || 'ko';
+    this.switchLanguage(this.lang);
+
     this.setupUIEvents();
-    
+
     // Start preloader
     this.preloadAssets();
   }
-  
+
   // Create offscreen poop sprite
   createPoopSprite() {
     const pCanvas = document.createElement('canvas');
     pCanvas.width = 16;
     pCanvas.height = 16;
     const pCtx = pCanvas.getContext('2d');
-    
+
     for (let r = 0; r < 16; r++) {
       for (let c = 0; c < 16; c++) {
         const colorId = POOP_MATRIX[r][c];
@@ -353,13 +434,13 @@ class GameEngine {
     }
     this.unpoCanvas = pCanvas;
   }
-  
+
   renderUnpoDescription() {
     const canvas = document.getElementById('unpo-desc-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     const pixelSize = canvas.width / 16;
     for (let r = 0; r < 16; r++) {
       for (let c = 0; c < 16; c++) {
@@ -371,30 +452,72 @@ class GameEngine {
       }
     }
   }
-  
+
+  switchLanguage(lang) {
+    this.lang = lang;
+    localStorage.setItem('pypy_lang', lang);
+
+    const dict = TRANSLATIONS[lang];
+    if (!dict) return;
+
+    const elements = document.querySelectorAll('[data-i18n]');
+    elements.forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (dict[key]) {
+        if (key.startsWith('instruction-') || key === 'registration-label') {
+          el.innerHTML = dict[key];
+        } else {
+          el.textContent = dict[key];
+        }
+      }
+    });
+
+    document.title = dict['title'] || document.title;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc && dict['meta-desc']) {
+      metaDesc.setAttribute('content', dict['meta-desc']);
+    }
+
+    const btnJa = document.getElementById('btn-lang-ja');
+    const btnKo = document.getElementById('btn-lang-ko');
+    if (btnJa && btnKo) {
+      if (lang === 'ja') {
+        btnJa.classList.add('active');
+        btnKo.classList.remove('active');
+      } else {
+        btnKo.classList.add('active');
+        btnJa.classList.remove('active');
+      }
+    }
+  }
+
+  i18n(key) {
+    return TRANSLATIONS[this.lang]?.[key] || key;
+  }
+
   // Preload PNGs
   preloadAssets() {
     const keys = Object.keys(ASSET_PATHS);
     let loadedCount = 0;
     const totalCount = keys.length;
-    
+
     const updateProgress = () => {
       const percentage = (loadedCount / totalCount) * 100;
       document.getElementById('loading-bar').style.width = percentage + '%';
       if (loadedCount === totalCount) {
         // Build poop sprite
         this.createPoopSprite();
-        
+
         // Render unpo description canvas on title screen
         this.renderUnpoDescription();
-        
+
         // Show start screen
         setTimeout(() => {
           this.transitionTo('TITLE');
         }, 500);
       }
     };
-    
+
     keys.forEach(key => {
       const img = new Image();
       img.src = ASSET_PATHS[key];
@@ -419,7 +542,7 @@ class GameEngine {
     this.keysPressed = {};
     window.addEventListener('keydown', (e) => {
       this.keysPressed[e.code] = true;
-      
+
       // Toggle Pause/Resume on Escape or Space
       if (e.code === 'Escape' || e.code === 'Space') {
         if (this.state === 'PLAYING' || this.state === 'PAUSED') {
@@ -429,7 +552,7 @@ class GameEngine {
           return;
         }
       }
-      
+
       // Start game on Space from Title screen
       if (e.code === 'Space' && this.state === 'TITLE') {
         e.preventDefault(); // Prevent scrolling on Space
@@ -437,7 +560,7 @@ class GameEngine {
         this.startGame();
         return;
       }
-      
+
       if (this.state === 'PLAYING') {
         if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
           // move target left
@@ -449,7 +572,7 @@ class GameEngine {
         }
       }
     });
-    
+
     window.addEventListener('keyup', (e) => {
       this.keysPressed[e.code] = false;
     });
@@ -457,21 +580,21 @@ class GameEngine {
     // Pointer events (handles Mouse and Touch)
     const handlePointerMove = (e) => {
       if (this.state !== 'PLAYING') return;
-      
+
       const rect = this.canvas.getBoundingClientRect();
       const scaleX = CANVAS_WIDTH / rect.width;
-      
+
       // Calculate X relative to canvas
       let clientX = e.clientX;
       if (e.touches && e.touches.length > 0) {
         clientX = e.touches[0].clientX;
       }
-      
+
       const relativeX = (clientX - rect.left) * scaleX;
-      
+
       // Poyonpoyon target center matches pointer coordinates
       const targetX = relativeX - this.player.width / 2;
-      
+
       // Clamp inside screen bounds
       this.player.targetX = Math.max(0, Math.min(CANVAS_WIDTH - this.player.width, targetX));
     };
@@ -490,7 +613,7 @@ class GameEngine {
     this.canvas.addEventListener('pointerup', (e) => {
       this.canvas.releasePointerCapture(e.pointerId);
     });
-    
+
     // Prevent default touch scrolls on screen to avoid page bounce
     this.canvas.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
     this.canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
@@ -503,9 +626,9 @@ class GameEngine {
   setupMobileButton(buttonId, callback) {
     const btn = document.getElementById(buttonId);
     if (!btn) return;
-    
+
     let touchTriggered = false;
-    
+
     // Mobile Touch End (instantly responds, bypassing 300ms delays)
     btn.addEventListener('touchend', (e) => {
       e.preventDefault();
@@ -515,7 +638,7 @@ class GameEngine {
       sounds.playClick(); // Play button click SFX
       callback();
     }, { passive: false });
-    
+
     // Desktop / Fallback Click
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -530,6 +653,14 @@ class GameEngine {
   }
 
   setupUIEvents() {
+    // 言語切替ボタンのバインド
+    this.setupMobileButton('btn-lang-ja', () => {
+      this.switchLanguage('ja');
+    });
+    this.setupMobileButton('btn-lang-ko', () => {
+      this.switchLanguage('ko');
+    });
+
     // Start game button
     this.setupMobileButton('btn-start', () => {
       this.startGame();
@@ -598,7 +729,7 @@ class GameEngine {
   // ==========================================================================
   transitionTo(newState) {
     this.state = newState;
-    
+
     // Hide all overlays first
     document.getElementById('loading-screen').classList.add('hidden');
     document.getElementById('start-screen').classList.add('hidden');
@@ -611,7 +742,7 @@ class GameEngine {
 
     if (newState === 'TITLE') {
       document.getElementById('start-screen').classList.remove('hidden');
-      
+
       // Reset weather overlays and variables when returning to title
       const screenEl = document.getElementById('game-screen');
       if (screenEl) {
@@ -620,30 +751,30 @@ class GameEngine {
       this.weather = 'NORMAL';
       this.weatherParticles = [];
       this.lightningFlash = 0;
-      
+
       // Clear out play variables
       this.entities = [];
       this.particles = [];
       this.floatingTexts = [];
-    } 
+    }
     else if (newState === 'PLAYING') {
       document.getElementById('game-hud').classList.remove('hidden');
       document.getElementById('btn-pause-trigger').classList.remove('hidden');
       this.updateLivesHUD();
-    } 
+    }
     else if (newState === 'PAUSED') {
       document.getElementById('game-hud').classList.remove('hidden');
       document.getElementById('pause-screen').classList.remove('hidden');
-    } 
+    }
     else if (newState === 'GAMEOVER') {
       document.getElementById('game-hud').classList.remove('hidden');
       document.getElementById('gameover-screen').classList.remove('hidden');
-      
+
       // Update Game Over info
       document.getElementById('final-score').innerText = this.score;
       document.getElementById('final-time').innerText = this.timeSurvived + '秒';
       document.getElementById('best-score').innerText = this.highScore;
-      
+
       const badge = document.getElementById('highscore-badge');
       if (this.isNewHighScore) {
         badge.classList.remove('hidden');
@@ -663,21 +794,21 @@ class GameEngine {
     this.floatingTexts = [];
     this.spawnInterval = 1200;
     this.baseSpeed = 5;
-    
+
     // Reset player position
     this.player.x = CANVAS_WIDTH / 2 - 30;
     this.player.targetX = CANVAS_WIDTH / 2 - 30;
     this.player.invulnerable = false;
     this.player.invulnTime = 0;
     this.player.dirState = 'idle';
-    
+
     // Roll for weather: 5% Snow, 5% Rain, 5% Thunder, 85% Normal
     const weatherRoll = Math.random();
     const screenEl = document.getElementById('game-screen');
     if (screenEl) {
       screenEl.classList.remove('weather-snow', 'weather-rain', 'weather-thunder');
     }
-    
+
     if (weatherRoll < 0.05) {
       this.weather = 'SNOW';
       if (screenEl) screenEl.classList.add('weather-snow');
@@ -693,7 +824,7 @@ class GameEngine {
       this.weather = 'NORMAL';
     }
     this.weatherParticles = [];
-    
+
     this.startTime = Date.now();
     this.lastTimeIncrement = Date.now();
     this.lastSpawnTime = Date.now();
@@ -701,7 +832,7 @@ class GameEngine {
     this.elapsedPlayTime = 0;
 
     this.transitionTo('PLAYING');
-    
+
     // Play sound
     sounds.playPowerup();
 
@@ -723,19 +854,19 @@ class GameEngine {
   updateLivesHUD() {
     const container = document.getElementById('hud-lives');
     const currentHeartCount = container.children.length;
-    
+
     // If the number of heart elements doesn't match current lives, rebuild
     if (currentHeartCount !== this.lives) {
       container.innerHTML = '';
       for (let i = 0; i < this.lives; i++) {
         const heart = document.createElement('div');
         heart.className = 'hud-heart';
-        
+
         // Add a nice animation when gained
         if (i >= currentHeartCount) {
           heart.classList.add('gained');
         }
-        
+
         container.appendChild(heart);
       }
     }
@@ -754,7 +885,7 @@ class GameEngine {
   // ==========================================================================
   // 7. GAME PLAY PHYSICS & LOGIC
   // ==========================================================================
-  
+
   // Weighted Spawn algorithm
   spawnObject() {
     const roll = Math.random();
@@ -770,7 +901,7 @@ class GameEngine {
     }
 
     const config = OBJECT_TYPES[selectedType];
-    
+
     // Roll for individual independent gimmicks
     const isFast = Math.random() < 0.20; // 20% chance to be extra fast
     const isGhost = Math.random() < 0.15; // 15% chance to be semi-transparent
@@ -779,12 +910,12 @@ class GameEngine {
       const alphas = [0.75, 0.5, 0.25];
       ghostAlpha = alphas[Math.floor(Math.random() * alphas.length)];
     }
-    
+
     let sizeScale = 1.0;
     if (Math.random() < 0.20) {
       sizeScale = 1.2 + Math.random() * 0.8; // 20% chance to be up to 2x size
     }
-    
+
     const isSpinning = Math.random() < 0.25; // 25% chance to spin
     const isSwaying = Math.random() < 0.25; // 25% chance to sway like a leaf
 
@@ -794,10 +925,10 @@ class GameEngine {
     // Spawn at a random X coordinate, fully visible on screen
     const x = Math.random() * (CANVAS_WIDTH - width);
     const y = -height;
-    
+
     // Calculate base speed based on difficulty level (with +/-20% speed variation)
     let speed = this.baseSpeed * (0.8 + Math.random() * 0.4) * config.speedMult;
-    
+
     // Apply speed modifiers for gimmicks
     if (isFast) {
       speed *= 1.6;
@@ -856,10 +987,10 @@ class GameEngine {
   scaleDifficulty() {
     const elapsedSeconds = this.elapsedPlayTime / 1000;
     const multiplier = Math.pow(2, elapsedSeconds / 180);
-    
+
     // Base speed starts at 5 and doubles every 3 minutes
     this.baseSpeed = 5 * multiplier;
-    
+
     // Spawn rate doubles every 3 minutes (spawn interval is halved, min cap of 100ms)
     this.spawnInterval = Math.max(100, 1200 / multiplier);
   }
@@ -882,36 +1013,36 @@ class GameEngine {
     };
 
     return hitbox1.x < hitbox2.x + hitbox2.w &&
-           hitbox1.x + hitbox1.w > hitbox2.x &&
-           hitbox1.y < hitbox2.y + hitbox2.h &&
-           hitbox1.y + hitbox1.h > hitbox2.y;
+      hitbox1.x + hitbox1.w > hitbox2.x &&
+      hitbox1.y < hitbox2.y + hitbox2.h &&
+      hitbox1.y + hitbox1.h > hitbox2.y;
   }
 
   // Handle player collisions
   handleCollision(entity) {
     const config = OBJECT_TYPES[entity.type];
-    
+
     if (entity.type === 'song') {
       // Catching Song-sensei: Positive!
       sounds.playCoin();
-      
+
       if (this.lives < MAX_LIVES) {
         this.lives += config.lifeChg;
         this.updateLivesHUD();
-        this.spawnFloatingText(`残機 +1`, entity.x + entity.width/2, entity.y, '#38b000');
+        this.spawnFloatingText(this.i18n('float-life-up'), entity.x + entity.width / 2, entity.y, '#38b000');
       } else {
         this.score += config.points;
         this.updateScoreHUD();
-        this.spawnFloatingText(`+${config.points} 点`, entity.x + entity.width/2, entity.y, '#38b000');
+        this.spawnFloatingText(`+${config.points} ${this.i18n('float-points-suffix')}`, entity.x + entity.width / 2, entity.y, '#38b000');
       }
-      
+
       // Green shiny particles burst
-      this.spawnBurst(entity.x + entity.width/2, entity.y + entity.height/2, '#70e000', 12);
-    } 
+      this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, '#70e000', 12);
+    }
     else {
       // Colliding with other characters/poop: Negative!
       if (this.player.invulnerable) return; // Ignore damage during invulnerability frames
-      
+
       if (entity.type === 'unpo') {
         sounds.playUnpo();
       } else {
@@ -923,7 +1054,7 @@ class GameEngine {
 
       // Score deduction (cap at 0)
       this.score = Math.max(0, this.score + config.points);
-      
+
       // Life reduction
       this.lives += config.lifeChg;
       this.updateLivesHUD();
@@ -933,12 +1064,12 @@ class GameEngine {
       this.player.invulnTime = 500; // 0.5s
 
       // Floating score pop
-      this.spawnFloatingText(`${config.points} 点`, entity.x + entity.width/2, entity.y, '#d90429');
-      
+      this.spawnFloatingText(`${config.points} ${this.i18n('float-points-suffix')}`, entity.x + entity.width / 2, entity.y, '#d90429');
+
       // Burst particles depending on object type
       const burstColor = entity.type === 'unpo' ? '#8c5830' : '#ff477e';
-      this.spawnBurst(entity.x + entity.width/2, entity.y + entity.height/2, burstColor, 10);
-      
+      this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, burstColor, 10);
+
       // Verify game over
       if (this.lives <= 0) {
         this.gameOver();
@@ -974,11 +1105,23 @@ class GameEngine {
     if (submitBtn) submitBtn.disabled = false;
     if (statusEl) statusEl.innerText = '';
 
-    // 規定値の名前をランダムで設定
+    // 規定値の名前をランダムで設定 (言語別)
     const nameInput = document.getElementById('player-name');
     if (nameInput) {
-      const DEFAULT_NAMES = ["ぽよんぽよん", "ソン先生", "ぽにゃん", "ぽむ", "ぽみ"];
-      const randomName = DEFAULT_NAMES[Math.floor(Math.random() * DEFAULT_NAMES.length)];
+      let randomName = '';
+      if (this.lang === 'ko') {
+        const list1 = ["질풍의", "날쌘돌이", "배고픈", "춤추는", "잠자는", "밥먹는", "츄르먹는", "만취의"];
+        const list2 = ["뽀용뽀용", "뽀카피", "송센세", "뽀냥이", "뽀무", "뽀미"];
+        const w1 = list1[Math.floor(Math.random() * list1.length)];
+        const w2 = list2[Math.floor(Math.random() * list2.length)];
+        randomName = w1 + " " + w2; // スペースあり
+      } else {
+        const list1 = ["疾風の", "腹ペコの", "踊る", "爆睡中の", "大食いの"];
+        const list2 = ["ぽよんぽよん", "ぽかぴー", "ソン先生", "ぽにゃん", "ぽむ", "ぽみ"];
+        const w1 = list1[Math.floor(Math.random() * list1.length)];
+        const w2 = list2[Math.floor(Math.random() * list2.length)];
+        randomName = w1 + w2; // スペースなし
+      }
       this.activeDefaultName = randomName;
       nameInput.value = randomName;
       nameInput.style.color = '#718096'; // プレースホルダー用の薄い文字色
@@ -1023,11 +1166,11 @@ class GameEngine {
     }
 
     submitBtn.disabled = true;
-    statusEl.innerText = '送信中...';
+    statusEl.innerText = this.i18n('status-submitting');
 
     try {
       await this.submitScoreDirectly(name);
-      statusEl.innerText = '登録完了しました！';
+      statusEl.innerText = this.i18n('status-success');
 
       // 1秒後に自動でフォームを非表示にしてランキング画面を開く
       setTimeout(() => {
@@ -1036,7 +1179,7 @@ class GameEngine {
         this.showRankingBoard();
       }, 1000);
     } catch (error) {
-      statusEl.innerText = '送信に失敗しました。再試行してください。';
+      statusEl.innerText = this.i18n('status-fail');
       submitBtn.disabled = false;
     }
   }
@@ -1051,7 +1194,7 @@ class GameEngine {
     if (!modal) return;
     modal.classList.remove('hidden');
     if (loading) loading.classList.remove('hidden');
-    if (loading) loading.innerText = '読み込み中...';
+    if (loading) loading.innerText = this.i18n('ranking-loading');
     if (table) table.classList.add('hidden');
     if (tbody) tbody.innerHTML = '';
 
@@ -1069,7 +1212,7 @@ class GameEngine {
       if (table) table.classList.remove('hidden');
 
       if (rankings.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">データがありません。最初の登録者になろう！</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="4">${this.i18n('no-data')}</td></tr>`;
         return;
       }
 
@@ -1086,19 +1229,19 @@ class GameEngine {
           <td class="${rankClass}">${rank}</td>
           <td>${this.escapeHTML(entry.name)}</td>
           <td>${entry.score}</td>
-          <td>${entry.time}s</td>
+          <td>${entry.time}${this.i18n('time-unit')}</td>
         `;
         tbody.appendChild(tr);
       });
     } catch (error) {
       console.error(error);
-      if (loading) loading.innerText = 'ランキングの取得に失敗しました。';
+      if (loading) loading.innerText = this.i18n('status-error');
     }
   }
 
   escapeHTML(str) {
     if (!str) return '';
-    return str.replace(/[&<>'"]/g, 
+    return str.replace(/[&<>'"]/g,
       tag => ({
         '&': '&amp;',
         '<': '&lt;',
@@ -1112,7 +1255,7 @@ class GameEngine {
   // ==========================================================================
   // 8. PARTICLE & VISUAL EFFECTS
   // ==========================================================================
-  
+
   // Spawn a floating text effect
   spawnFloatingText(str, x, y, color) {
     this.floatingTexts.push({
@@ -1166,7 +1309,7 @@ class GameEngine {
   update(dt) {
     const now = Date.now();
     const timeScale = dt / 16.666; // Normalized to 60fps speed
-    
+
     // Update Weather Particles spawning
     if (this.weather === 'SNOW') {
       if (Math.random() < 0.35) {
@@ -1201,7 +1344,7 @@ class GameEngine {
       const p = this.weatherParticles[i];
       p.x += p.vx * timeScale;
       p.y += p.vy * timeScale;
-      
+
       // Remove offscreen
       if (p.y > CANVAS_HEIGHT || p.x < -30) {
         this.weatherParticles.splice(i, 1);
@@ -1229,9 +1372,9 @@ class GameEngine {
     // 1. Update Player Movement (Smooth Lerping)
     const prevX = this.player.x;
     this.player.x += (this.player.targetX - this.player.x) * this.player.lerpSpeed;
-    
+
     const velocityX = this.player.x - prevX;
-    
+
     // Determine player movement direction state for frames
     if (Math.abs(velocityX) < 0.8) {
       this.player.dirState = 'idle';
@@ -1263,7 +1406,7 @@ class GameEngine {
     for (let i = this.entities.length - 1; i >= 0; i--) {
       const entity = this.entities[i];
       const timeScale = dt / 16.666; // Normalized to 60fps speed
-      
+
       // Move downward
       entity.y += entity.speed * timeScale;
 
@@ -1273,7 +1416,7 @@ class GameEngine {
         entity.x = entity.baseX + Math.sin(entity.swayAngle) * entity.swayRange;
         // Clamp to screen bounds
         entity.x = Math.max(0, Math.min(CANVAS_WIDTH - entity.width, entity.x));
-        
+
         // Rock back and forth if not spinning
         if (!entity.isSpinning) {
           entity.rotation = Math.sin(entity.swayAngle) * 0.4;
@@ -1320,7 +1463,7 @@ class GameEngine {
       p.x += p.vx;
       p.y += p.vy;
       p.age++;
-      
+
       // Remove dead particles
       if (p.age >= p.maxAge || p.x < -20 || p.y > CANVAS_HEIGHT) {
         this.particles.splice(i, 1);
@@ -1344,7 +1487,7 @@ class GameEngine {
       const currentIntensity = this.shake.intensity * (this.shake.duration / 250);
       this.shake.x = (Math.random() - 0.5) * 2 * currentIntensity;
       this.shake.y = (Math.random() - 0.5) * 2 * currentIntensity;
-      
+
       if (this.shake.duration <= 0) {
         this.shake.x = 0;
         this.shake.y = 0;
@@ -1359,7 +1502,7 @@ class GameEngine {
     this.nightFactor = distFromMidnight < 40 ? (1 + Math.cos(Math.PI * distFromMidnight / 40)) / 2 : 0;
 
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    
+
     // Save context for camera shake
     this.ctx.save();
     this.ctx.translate(this.shake.x, this.shake.y);
@@ -1413,22 +1556,22 @@ class GameEngine {
       if (img) {
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.save();
-        
+
         // Apply ghost transparency gimmick
         if (entity.isGhost) {
           this.ctx.globalAlpha = entity.ghostAlpha;
         } else {
           this.ctx.globalAlpha = 1.0;
         }
-        
+
         // Translate to the center of the entity
         this.ctx.translate(entity.x + entity.width / 2, entity.y + entity.height / 2);
-        
+
         // Apply rotation if defined
         if (entity.rotation) {
           this.ctx.rotate(entity.rotation);
         }
-        
+
         // Draw relative to center
         this.ctx.drawImage(img, -entity.width / 2, -entity.height / 2, entity.width, entity.height);
         this.ctx.restore();
@@ -1446,27 +1589,27 @@ class GameEngine {
 
       const assetKey = `pypy_${this.player.dirState}${frameNum}`;
       const playerImg = this.images[assetKey];
-      
+
       if (playerImg) {
         // Squash and Stretch based on velocity for juicy bouncy feel
         const velocityX = Math.abs(this.player.targetX - this.player.x);
         const stretchX = Math.min(1.2, 1 + velocityX * 0.005);
         const stretchY = Math.max(0.8, 1 - velocityX * 0.005);
-        
+
         const drawW = this.player.width * stretchX;
         const drawH = this.player.height * stretchY;
-        
+
         // Draw centered relative to actual coordinate
         const drawX = this.player.x - (drawW - this.player.width) / 2;
         const drawY = this.player.y + (this.player.height - drawH);
 
         this.ctx.imageSmoothingEnabled = false;
-        
+
         // If invulnerable, draw with transparency
         if (this.player.invulnerable) {
           this.ctx.globalAlpha = 0.5;
         }
-        
+
         this.ctx.drawImage(playerImg, drawX, drawY, drawW, drawH);
         this.ctx.globalAlpha = 1.0;
       }
@@ -1476,7 +1619,7 @@ class GameEngine {
     // Bottom Grass Ground (Dark/Light pixel layered green grass)
     this.ctx.fillStyle = '#38b000';
     this.ctx.fillRect(0, CANVAS_HEIGHT - GRASS_HEIGHT, CANVAS_WIDTH, GRASS_HEIGHT);
-    
+
     // Grass top border tiles (retro jagged design)
     this.ctx.fillStyle = '#70e000';
     const tileSize = 12;
@@ -1501,16 +1644,16 @@ class GameEngine {
       this.ctx.strokeStyle = '#1a202c';
       this.ctx.lineWidth = 4;
       this.ctx.textAlign = 'center';
-      
+
       // Fade out dynamically
       const opacity = 1 - (ft.age / ft.maxAge);
       this.ctx.globalAlpha = opacity;
-      
+
       // Text border outline
       this.ctx.strokeText(ft.str, ft.x, ft.y);
       this.ctx.fillText(ft.str, ft.x, ft.y);
     });
-    
+
     this.ctx.globalAlpha = 1.0;
     this.ctx.restore();
 
@@ -1551,7 +1694,7 @@ class GameEngine {
     this.nightFactor = distFromMidnight < 40 ? (1 + Math.cos(Math.PI * distFromMidnight / 40)) / 2 : 0;
 
     this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    
+
     // Draw Stars (twinkling at night on Title screen too)
     if (this.nightFactor > 0 && this.weather === 'NORMAL') {
       this.ctx.save();
@@ -1565,7 +1708,7 @@ class GameEngine {
       });
       this.ctx.restore();
     }
-    
+
     // Spawn wind particles even in title screen
     this.spawnWindParticles();
     this.particles.forEach(p => {
@@ -1574,11 +1717,11 @@ class GameEngine {
         this.ctx.fillRect(p.x, p.y, p.size, p.size);
       }
     });
-    
+
     // Draw ground
     this.ctx.fillStyle = '#38b000';
     this.ctx.fillRect(0, CANVAS_HEIGHT - GRASS_HEIGHT, CANVAS_WIDTH, GRASS_HEIGHT);
-    
+
     this.ctx.fillStyle = '#70e000';
     const tileSize = 12;
     for (let x = 0; x < CANVAS_WIDTH; x += tileSize) {
