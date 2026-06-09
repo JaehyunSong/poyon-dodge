@@ -57,22 +57,34 @@
           </h1>
           
           <div class="title-character-container">
-            <!-- We will animate a canvas preview or character image here -->
-            <div class="character-preview-sprite"></div>
+            <div class="preview-sprite sprite-pomi"></div>
+            <div class="preview-sprite sprite-song"></div>
+            <div class="preview-sprite sprite-life"></div>
+            <div class="preview-sprite sprite-ponyan"></div>
+            <div class="preview-sprite sprite-pomu"></div>
           </div>
 
           <!-- Instructions Card -->
           <div class="instructions-card">
             <div class="instructions-title">あそびかた</div>
             <ul class="instructions-list">
-              <li>左右にドラッグ（または左右矢印キー）でぽよんぽよんを動かそう！<br><span style="font-size:11px;color:#718096;">※スペースキーを押してスタートすることもできます</span></li>
-              <li><span class="highlight-good">ソン先生</span>をキャッチすると <strong>残機+1 & +10点！</strong></li>
-              <li>他のキャラクターや<span class="highlight-bad">うんぽ</span>に当たると <strong>ダメージ & 減点！</strong></li>
+              <li>左右にドラッグ（または左右矢印キー）でぽよんぽよんを動かそう！</li>
+              <li><img src="assets/song.png" class="inline-sprite" alt="ソン先生">をキャッチすると <strong>残機+1！</strong></li>
+              <li>
+                <img src="assets/ponyan.png" class="inline-sprite" alt="ぽにゃん">
+                <img src="assets/pomu.png" class="inline-sprite" alt="ぽむ">
+                <img src="assets/pomi.png" class="inline-sprite" alt="ぽみ">や
+                <canvas id="unpo-desc-canvas" width="20" height="20" class="inline-sprite-canvas"></canvas>
+                に当たると <strong>ダメージ！</strong>
+              </li>
               <li>時間経過とともに難易度アップ！</li>
             </ul>
           </div>
 
-          <button id="btn-start" class="btn btn-primary btn-pulse">スタート！</button>
+          <div class="start-actions" style="display:flex; flex-direction:row; gap:12px; width:100%; max-width:380px;">
+            <button id="btn-start" class="btn btn-primary btn-pulse" style="flex:1;">スタート</button>
+            <button id="btn-ranking" class="btn btn-secondary" style="flex:1;">ランキング</button>
+          </div>
         </div>
       </div>
 
@@ -106,6 +118,16 @@
             </div>
           </div>
 
+          <!-- オンラインランキング登録フォーム -->
+          <div id="ranking-registration" class="ranking-registration hidden">
+            <div class="registration-label">100位以内にランクイン！名前を入力してね</div>
+            <div class="registration-form">
+              <input type="text" id="player-name" maxlength="8">
+              <button id="btn-submit-score" class="btn btn-primary">送信</button>
+            </div>
+            <div id="registration-status" class="registration-status"></div>
+          </div>
+
           <div class="gameover-actions">
             <button id="btn-restart" class="btn btn-primary btn-pulse">もういちど遊ぶ</button>
             <button id="btn-gameover-title" class="btn btn-secondary">タイトルへ</button>
@@ -117,6 +139,30 @@
       <button id="btn-pause-trigger" class="btn-pause-trigger hidden" aria-label="ポーズ">
         <span class="pause-icon"></span>
       </button>
+
+      <!-- Ranking Modal Overlay -->
+      <div id="ranking-modal" class="screen-overlay hidden">
+        <div class="ranking-content">
+          <button id="btn-close-ranking" class="btn-close-ranking" aria-label="閉じる">&times;</button>
+          <div class="ranking-title">ONLINE RANKING</div>
+          <div id="ranking-loading" class="ranking-loading">読み込み中...</div>
+          <div class="ranking-table-container">
+            <table id="ranking-table" class="ranking-table hidden">
+              <thead>
+                <tr>
+                  <th style="width: 20%;">順位</th>
+                  <th style="width: 45%;">なまえ</th>
+                  <th style="width: 20%;">スコア</th>
+                  <th style="width: 15%;">時間</th>
+                </tr>
+              </thead>
+              <tbody id="ranking-tbody">
+                <!-- JSで動的に追加されます -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
     </div>
   </div>

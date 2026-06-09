@@ -9,8 +9,9 @@
 const CANVAS_WIDTH = 540;   // Virtual Width
 const CANVAS_HEIGHT = 960;  // Virtual Height
 const GRASS_HEIGHT = 100;   // Height of the grass ground at the bottom
-const MAX_LIVES = 10;
-const INITIAL_LIVES = 5;
+const MAX_LIVES = 5;
+const INITIAL_LIVES = 3;
+const RANKING_API_URL = 'https://script.google.com/macros/s/AKfycbybhv6cgp_vF01mHrWDux67I8JIGLjBZqmbLWszmw8ia1UnCVXrS859AK_foN0KSoEmyw/exec';
 
 // Asset mappings
 const ASSET_PATHS = {
@@ -256,6 +257,7 @@ class GameEngine {
     
     this.images = {};
     this.unpoCanvas = null; // Programmatic canvas for poop sprite
+    this.activeDefaultName = '';
     
     // Time tracking for day-night sync
     this.pageLoadTime = Date.now();
@@ -352,6 +354,24 @@ class GameEngine {
     this.unpoCanvas = pCanvas;
   }
   
+  renderUnpoDescription() {
+    const canvas = document.getElementById('unpo-desc-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const pixelSize = canvas.width / 16;
+    for (let r = 0; r < 16; r++) {
+      for (let c = 0; c < 16; c++) {
+        const colorId = POOP_MATRIX[r][c];
+        if (colorId > 0) {
+          ctx.fillStyle = POOP_COLORS[colorId];
+          ctx.fillRect(c * pixelSize, r * pixelSize, pixelSize, pixelSize);
+        }
+      }
+    }
+  }
+  
   // Preload PNGs
   preloadAssets() {
     const keys = Object.keys(ASSET_PATHS);
@@ -364,6 +384,9 @@ class GameEngine {
       if (loadedCount === totalCount) {
         // Build poop sprite
         this.createPoopSprite();
+        
+        // Render unpo description canvas on title screen
+        this.renderUnpoDescription();
         
         // Show start screen
         setTimeout(() => {
@@ -512,6 +535,38 @@ class GameEngine {
       this.startGame();
     });
 
+    // Ranking board button
+    this.setupMobileButton('btn-ranking', () => {
+      this.showRankingBoard();
+    });
+
+    // Close ranking button
+    this.setupMobileButton('btn-close-ranking', () => {
+      document.getElementById('ranking-modal').classList.add('hidden');
+    });
+
+    // Submit score button
+    this.setupMobileButton('btn-submit-score', () => {
+      this.handleManualScoreSubmit();
+    });
+
+    // Input box focus/blur events for default name handling
+    const nameInput = document.getElementById('player-name');
+    if (nameInput) {
+      nameInput.addEventListener('focus', () => {
+        if (nameInput.value === this.activeDefaultName) {
+          nameInput.value = '';
+          nameInput.style.color = '#1a202c';
+        }
+      });
+      nameInput.addEventListener('blur', () => {
+        if (nameInput.value.trim() === '') {
+          nameInput.value = this.activeDefaultName;
+          nameInput.style.color = '#718096';
+        }
+      });
+    }
+
     // Pause trigger button
     this.setupMobileButton('btn-pause-trigger', () => {
       this.togglePause();
@@ -551,6 +606,8 @@ class GameEngine {
     document.getElementById('gameover-screen').classList.add('hidden');
     document.getElementById('btn-pause-trigger').classList.add('hidden');
     document.getElementById('game-hud').classList.add('hidden');
+    document.getElementById('ranking-modal').classList.add('hidden');
+    document.getElementById('ranking-registration').classList.add('hidden');
 
     if (newState === 'TITLE') {
       document.getElementById('start-screen').classList.remove('hidden');
@@ -717,6 +774,11 @@ class GameEngine {
     // Roll for individual independent gimmicks
     const isFast = Math.random() < 0.20; // 20% chance to be extra fast
     const isGhost = Math.random() < 0.15; // 15% chance to be semi-transparent
+    let ghostAlpha = 1.0;
+    if (isGhost) {
+      const alphas = [0.75, 0.5, 0.25];
+      ghostAlpha = alphas[Math.floor(Math.random() * alphas.length)];
+    }
     
     let sizeScale = 1.0;
     if (Math.random() < 0.20) {
@@ -777,6 +839,7 @@ class GameEngine {
       name: config.name,
       isFast,
       isGhost,
+      ghostAlpha,
       sizeScale,
       isSpinning,
       isSwaying,
@@ -832,18 +895,15 @@ class GameEngine {
       // Catching Song-sensei: Positive!
       sounds.playCoin();
       
-      // Score increase
-      this.score += config.points;
-      
-      // Life increase (max 10)
       if (this.lives < MAX_LIVES) {
         this.lives += config.lifeChg;
         this.updateLivesHUD();
+        this.spawnFloatingText(`残機 +1`, entity.x + entity.width/2, entity.y, '#38b000');
+      } else {
+        this.score += config.points;
+        this.updateScoreHUD();
+        this.spawnFloatingText(`+${config.points} 点`, entity.x + entity.width/2, entity.y, '#38b000');
       }
-      
-      // Floating points pop
-      this.spawnFloatingText(`+${config.points} 点`, entity.x + entity.width/2, entity.y, '#38b000');
-      this.spawnFloatingText(`残機 +1`, entity.x + entity.width/2, entity.y - 25, '#38b000');
       
       // Green shiny particles burst
       this.spawnBurst(entity.x + entity.width/2, entity.y + entity.height/2, '#70e000', 12);
@@ -898,6 +958,206 @@ class GameEngine {
       localStorage.setItem('pypy_highscore', this.highScore);
       this.isNewHighScore = true;
     }
+
+    // Check online ranking inclusion
+    this.checkOnlineRankingInclusion();
+  }
+
+  // オンラインランキングの上位100位判定
+  async checkOnlineRankingInclusion() {
+    const regForm = document.getElementById('ranking-registration');
+    const statusEl = document.getElementById('registration-status');
+    const submitBtn = document.getElementById('btn-submit-score');
+    if (!regForm) return;
+
+    regForm.classList.add('hidden');
+    if (submitBtn) submitBtn.disabled = false;
+    if (statusEl) statusEl.innerText = 'ランキングデータ確認中...';
+
+    if (!RANKING_API_URL) {
+      if (statusEl) statusEl.innerText = 'ランキングAPIが設定されていません。';
+      return;
+    }
+
+    try {
+      // タイムアウト付きフェッチ (5秒)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(RANKING_API_URL, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) throw new Error('API取得エラー');
+      const rankings = await response.json();
+
+      let eligibleForRanking = false;
+
+      // 取得件数が100件未満、もしくは現在のスコアが100位のスコア以上であればランクイン
+      if (rankings.length < 100) {
+        eligibleForRanking = true;
+      } else {
+        const lastEntry = rankings[rankings.length - 1];
+        if (this.score >= lastEntry.score) {
+          eligibleForRanking = true;
+        }
+      }
+
+      if (eligibleForRanking) {
+        // ランクインした場合はフォームを表示
+        regForm.classList.remove('hidden');
+        if (statusEl) statusEl.innerText = '';
+
+        // 規定値の名前をランダムで設定
+        const nameInput = document.getElementById('player-name');
+        if (nameInput) {
+          const DEFAULT_NAMES = ["ぽよんぽよん", "ソン先生", "ぽにゃん", "ぽむ", "ぽみ"];
+          const randomName = DEFAULT_NAMES[Math.floor(Math.random() * DEFAULT_NAMES.length)];
+          this.activeDefaultName = randomName;
+          nameInput.value = randomName;
+          nameInput.style.color = '#718096'; // プレースホルダー用の薄い文字色
+        }
+      } else {
+        // 100位未満の場合は「ランキング外」で自動送信
+        if (statusEl) statusEl.innerText = 'スコアを自動送信中...';
+        await this.submitScoreDirectly('ランキング外');
+        if (statusEl) statusEl.innerText = 'スコアが保存されました（100位以下：ランキング外）';
+      }
+    } catch (error) {
+      console.error(error);
+      // 通信エラーなどの場合は手動送信可能にする
+      regForm.classList.remove('hidden');
+      if (statusEl) statusEl.innerText = '通信エラーが発生しました。手動で登録できます。';
+      this.activeDefaultName = "ぽよんぽよん";
+      const nameInput = document.getElementById('player-name');
+      if (nameInput) {
+        nameInput.value = this.activeDefaultName;
+        nameInput.style.color = '#718096';
+      }
+    }
+  }
+
+  // スコアの直接送信処理
+  async submitScoreDirectly(name) {
+    if (!RANKING_API_URL) return;
+    try {
+      await fetch(RANKING_API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: JSON.stringify({
+          name: name,
+          score: this.score,
+          time: this.timeSurvived
+        })
+      });
+      // no-cors の場合はレスポンスの内容を読み取れないため、成功とみなしてダミーを返します
+      return { status: 'success' };
+    } catch (error) {
+      console.error('Submit score failed:', error);
+      throw error;
+    }
+  }
+
+  // 手動でのスコア送信処理
+  async handleManualScoreSubmit() {
+    const nameInput = document.getElementById('player-name');
+    const statusEl = document.getElementById('registration-status');
+    const submitBtn = document.getElementById('btn-submit-score');
+
+    if (!nameInput || !statusEl || !submitBtn) return;
+
+    let name = nameInput.value.trim();
+    if (name === '' || name === this.activeDefaultName) {
+      name = this.activeDefaultName || 'ななし';
+    }
+
+    submitBtn.disabled = true;
+    statusEl.innerText = '送信中...';
+
+    try {
+      await this.submitScoreDirectly(name);
+      statusEl.innerText = '登録完了しました！';
+
+      // 1秒後に自動でフォームを非表示にしてランキング画面を開く
+      setTimeout(() => {
+        const regForm = document.getElementById('ranking-registration');
+        if (regForm) regForm.classList.add('hidden');
+        this.showRankingBoard();
+      }, 1000);
+    } catch (error) {
+      statusEl.innerText = '送信に失敗しました。再試行してください。';
+      submitBtn.disabled = false;
+    }
+  }
+
+  // ランキングボード表示処理
+  async showRankingBoard() {
+    const modal = document.getElementById('ranking-modal');
+    const loading = document.getElementById('ranking-loading');
+    const table = document.getElementById('ranking-table');
+    const tbody = document.getElementById('ranking-tbody');
+
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    if (loading) loading.classList.remove('hidden');
+    if (loading) loading.innerText = '読み込み中...';
+    if (table) table.classList.add('hidden');
+    if (tbody) tbody.innerHTML = '';
+
+    if (!RANKING_API_URL) {
+      if (loading) loading.innerText = 'ランキングAPIのURLが設定されていません。';
+      return;
+    }
+
+    try {
+      const response = await fetch(RANKING_API_URL);
+      if (!response.ok) throw new Error('取得エラー');
+      const rankings = await response.json();
+
+      if (loading) loading.classList.add('hidden');
+      if (table) table.classList.remove('hidden');
+
+      if (rankings.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4">データがありません。最初の登録者になろう！</td></tr>';
+        return;
+      }
+
+      rankings.forEach((entry, index) => {
+        const tr = document.createElement('tr');
+        const rank = index + 1;
+
+        let rankClass = '';
+        if (rank === 1) rankClass = 'rank-1';
+        else if (rank === 2) rankClass = 'rank-2';
+        else if (rank === 3) rankClass = 'rank-3';
+
+        tr.innerHTML = `
+          <td class="${rankClass}">${rank}</td>
+          <td>${this.escapeHTML(entry.name)}</td>
+          <td>${entry.score}</td>
+          <td>${entry.time}s</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (error) {
+      console.error(error);
+      if (loading) loading.innerText = 'ランキングの取得に失敗しました。';
+    }
+  }
+
+  escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, 
+      tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[tag] || tag)
+    );
   }
 
   // ==========================================================================
@@ -1205,9 +1465,9 @@ class GameEngine {
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.save();
         
-        // Apply ghost transparency gimmick (25% opacity)
+        // Apply ghost transparency gimmick
         if (entity.isGhost) {
-          this.ctx.globalAlpha = 0.25;
+          this.ctx.globalAlpha = entity.ghostAlpha;
         } else {
           this.ctx.globalAlpha = 1.0;
         }

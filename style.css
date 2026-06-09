@@ -334,18 +334,69 @@ body {
 .title-character-container {
   height: 130px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  gap: 16px;
 }
 
-.character-preview-sprite {
-  width: 60px;
-  height: 120px;
-  background-image: url('assets/pypy_idle1.png');
+.preview-sprite {
+  width: 48px;
+  height: 48px;
   background-size: contain;
   background-repeat: no-repeat;
   image-rendering: pixelated;
-  animation: character-bounce 1s infinite alternate ease-in-out;
+  transform-origin: bottom center;
+}
+
+.sprite-pomi {
+  background-image: url('assets/pomi.png');
+  animation: sprite-bounce-pomi 0.8s infinite alternate ease-in-out;
+}
+
+.sprite-song {
+  background-image: url('assets/song.png');
+  animation: sprite-bounce-song 0.65s infinite alternate ease-in-out;
+  animation-delay: 0.2s;
+}
+
+.sprite-life {
+  background-image: url('assets/life.png');
+  animation: sprite-bounce-life 0.9s infinite alternate ease-in-out;
+  animation-delay: 0.05s;
+}
+
+.sprite-ponyan {
+  background-image: url('assets/ponyan.png');
+  animation: sprite-bounce-ponyan 0.75s infinite alternate ease-in-out;
+  animation-delay: 0.15s;
+}
+
+.sprite-pomu {
+  background-image: url('assets/pomu.png');
+  animation: sprite-bounce-pomu 0.85s infinite alternate ease-in-out;
+  animation-delay: 0.3s;
+}
+
+/* Bounce Animations for each sprite to make them bounce asynchronously */
+@keyframes sprite-bounce-pomi {
+  0% { transform: translateY(0) scaleY(1); }
+  100% { transform: translateY(-16px) scaleY(0.95); }
+}
+@keyframes sprite-bounce-song {
+  0% { transform: translateY(0) scaleY(1); }
+  100% { transform: translateY(-22px) scaleY(0.95); }
+}
+@keyframes sprite-bounce-life {
+  0% { transform: translateY(0) scaleY(1); }
+  100% { transform: translateY(-12px) scaleY(0.95); }
+}
+@keyframes sprite-bounce-ponyan {
+  0% { transform: translateY(0) scaleY(1); }
+  100% { transform: translateY(-18px) scaleY(0.95); }
+}
+@keyframes sprite-bounce-pomu {
+  0% { transform: translateY(0) scaleY(1); }
+  100% { transform: translateY(-14px) scaleY(0.95); }
 }
 
 .instructions-card {
@@ -399,6 +450,22 @@ body {
 .highlight-bad {
   color: var(--color-bad);
   font-weight: bold;
+}
+
+.inline-sprite {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  margin: 0 4px;
+  image-rendering: pixelated;
+}
+
+.inline-sprite-canvas {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  margin: 0 4px;
+  image-rendering: pixelated;
 }
 
 /* Buttons */
@@ -745,3 +812,166 @@ body {
     transform: rotate(12deg) scale(1.1);
   }
 }
+
+/* ランキング登録フォーム */
+.ranking-registration {
+  margin-top: 8px;
+  width: 85%;
+  max-width: 340px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 3px solid #1a202c;
+  box-shadow: 4px 4px 0 #1a202c;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  z-index: 5;
+}
+
+.registration-label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #4a5568;
+}
+
+.registration-form {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+}
+
+#player-name {
+  flex: 1;
+  padding: 8px;
+  border: 2px solid #1a202c;
+  border-radius: 4px;
+  font-family: var(--font-japanese);
+  font-size: 14px;
+  outline: none;
+  background: #ffffff;
+  transition: border-color 0.2s;
+}
+
+#player-name:focus {
+  border-color: var(--color-primary);
+}
+
+#btn-submit-score {
+  padding: 8px 16px;
+  font-size: 14px;
+  box-shadow: 0 3px 0 #1a202c;
+}
+
+#btn-submit-score:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1a202c;
+}
+
+.registration-status {
+  font-size: 11px;
+  color: #718096;
+}
+
+/* ランキングモーダル */
+.ranking-content {
+  position: relative; /* 右上閉じるボタンの基準点 */
+  width: 90%;
+  max-width: 380px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 4px solid #1a202c;
+  box-shadow: 6px 6px 0 #1a202c;
+  border-radius: 12px;
+  padding: 24px 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 右上閉じるボタン */
+.btn-close-ranking {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  font-size: 28px;
+  font-weight: bold;
+  color: #4a5568;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  outline: none;
+}
+
+.btn-close-ranking:hover {
+  color: var(--color-primary);
+}
+
+.ranking-title {
+  font-family: var(--font-retro);
+  font-size: 16px;
+  color: var(--color-primary);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+  margin-top: 8px;
+}
+
+.ranking-loading {
+  font-family: var(--font-japanese);
+  font-size: 14px;
+  color: #718096;
+  padding: 20px 0;
+}
+
+/* スクロール可能なコンテナ */
+.ranking-table-container {
+  width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 2px solid #cbd5e0;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ranking-table th, .ranking-table td {
+  border-bottom: 2px solid #cbd5e0;
+  padding: 8px 4px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ranking-table th {
+  position: sticky;
+  top: 0;
+  background: #f7fafc;
+  font-family: var(--font-japanese);
+  color: #718096;
+  font-weight: bold;
+  z-index: 1;
+}
+
+.ranking-table td {
+  color: #1a202c;
+}
+
+.ranking-table td:nth-child(2) {
+  font-family: var(--font-japanese);
+  font-weight: bold;
+}
+
+.ranking-table td:not(:nth-child(2)) {
+  font-family: var(--font-retro);
+}
+
+/* 順位カラー */
+.rank-1 { color: #d4af37 !important; font-weight: bold; font-size: 14px; }
+.rank-2 { color: #8a8a8a !important; font-weight: bold; font-size: 13px; }
+.rank-3 { color: #b87333 !important; font-weight: bold; font-size: 13px; }
