@@ -192,6 +192,8 @@ body {
   gap: 6px;
   max-width: 50%;
   flex-wrap: wrap;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .hud-heart {

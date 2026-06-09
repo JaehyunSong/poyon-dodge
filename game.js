@@ -373,6 +373,7 @@ class GameEngine {
     this.scoreMultiplier = 1;
     this.multiplierTimer = 0; // remaining time in ms for 2x score
     this.activeDefaultName = '';
+    this.livesTapCount = 0; // Easter Egg tap count
 
     // Time tracking for day-night sync
     this.pageLoadTime = Date.now();
@@ -845,6 +846,19 @@ class GameEngine {
     this.setupMobileButton('btn-gameover-title', () => {
       this.transitionTo('TITLE');
     });
+
+    // Easter egg: tap lives HUD 3 times to spawn Song-sensei
+    const livesEl = document.getElementById('hud-lives');
+    if (livesEl) {
+      livesEl.addEventListener('pointerdown', (e) => {
+        if (this.state !== 'PLAYING') return;
+        this.livesTapCount = (this.livesTapCount || 0) + 1;
+        if (this.livesTapCount >= 3) {
+          this.livesTapCount = 0;
+          this.spawnObject('song');
+        }
+      });
+    }
   }
 
   // ==========================================================================
@@ -921,6 +935,7 @@ class GameEngine {
     // Reset score multiplier
     this.scoreMultiplier = 1;
     this.multiplierTimer = 0;
+    this.livesTapCount = 0;
     const multEl = document.getElementById('hud-multiplier');
     if (multEl) multEl.classList.add('hidden');
     const scoreEl = document.getElementById('hud-score');
@@ -1018,16 +1033,19 @@ class GameEngine {
   // ==========================================================================
 
   // Weighted Spawn algorithm
-  spawnObject() {
-    const roll = Math.random();
-    let selectedType = 'ponyan'; // default
-    let accumulatedProb = 0;
+  spawnObject(forcedType = null) {
+    let selectedType = forcedType;
+    if (!selectedType) {
+      const roll = Math.random();
+      selectedType = 'ponyan'; // default
+      let accumulatedProb = 0;
 
-    for (const [type, config] of Object.entries(OBJECT_TYPES)) {
-      accumulatedProb += config.prob;
-      if (roll <= accumulatedProb) {
-        selectedType = type;
-        break;
+      for (const [type, config] of Object.entries(OBJECT_TYPES)) {
+        accumulatedProb += config.prob;
+        if (roll <= accumulatedProb) {
+          selectedType = type;
+          break;
+        }
       }
     }
 
@@ -1134,7 +1152,7 @@ class GameEngine {
 
   // Spawns a randomized object for the Game Over dramatic filling effect (column-restricted)
   spawnGameOverObject(colIndex) {
-    const types = ['song', 'ponyan', 'pomu', 'pomi', 'unpo'];
+    const types = ['song', 'carrot', 'ponyan', 'pomu', 'pomi', 'unpo'];
     const selectedType = types[Math.floor(Math.random() * types.length)];
     const config = OBJECT_TYPES[selectedType];
 
@@ -1974,6 +1992,21 @@ class GameEngine {
 
     this.ctx.globalAlpha = 1.0;
     this.ctx.restore();
+
+    // Draw Fever Countdown (large semi-transparent number in screen center)
+    if (this.state === 'PLAYING' && this.multiplierTimer > 0 && this.multiplierTimer <= 10000) {
+      const countdownVal = Math.ceil(this.multiplierTimer / 1000);
+      this.ctx.save();
+      this.ctx.font = 'bold 120px "DotGothic16", monospace';
+      this.ctx.fillStyle = 'rgba(255, 159, 28, 0.4)'; // Gold/Orange semi-transparent
+      this.ctx.strokeStyle = 'rgba(26, 32, 44, 0.3)';
+      this.ctx.lineWidth = 12;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.strokeText(countdownVal, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+      this.ctx.fillText(countdownVal, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+      this.ctx.restore();
+    }
 
     // 7. Draw Lightning Flash (Foreground overlay screen flash, outside camera shake context)
     if (this.lightningFlash > 0) {
