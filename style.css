@@ -1047,3 +1047,9 @@ body {
   background: var(--color-primary); /* ピンク */
   color: #ffffff;
 }
+
+#gameover-screen {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}

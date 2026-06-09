@@ -38,7 +38,8 @@ const TRANSLATIONS = {
     "status-success": "登録完了しました！",
     "status-fail": "送信に失敗しました。再試行してください。",
     "status-error": "ランキングの取得に失敗しました。",
-    "time-unit": "秒"
+    "time-unit": "秒",
+    "click-to-continue": "画面タップ または キー入力で次へ"
   },
   ko: {
     "title": "뽀용뽀용의 비사이로막가 대작전 | Poyonpoyon Dodge Game",
@@ -74,7 +75,8 @@ const TRANSLATIONS = {
     "status-success": "등록 완료되었습니다!",
     "status-fail": "전송에 실패했습니다. 다시 시도해주세요.",
     "status-error": "랭킹을 불러오지 못했습니다.",
-    "time-unit": "초"
+    "time-unit": "초",
+    "click-to-continue": "화면을 터치하거나 아무 키나 눌러서 계속"
   }
 };
 
@@ -543,6 +545,14 @@ class GameEngine {
     window.addEventListener('keydown', (e) => {
       this.keysPressed[e.code] = true;
 
+      // Handle transition to score screen on any key press during Game Over animation
+      if (this.state === 'GAMEOVER_ANIM') {
+        e.preventDefault();
+        sounds.playClick();
+        this.goToScoreScreen();
+        return;
+      }
+
       // Toggle Pause/Resume on Escape or Space
       if (e.code === 'Escape' || e.code === 'Space') {
         if (this.state === 'PLAYING' || this.state === 'PAUSED') {
@@ -600,6 +610,11 @@ class GameEngine {
     };
 
     this.canvas.addEventListener('pointerdown', (e) => {
+      if (this.state === 'GAMEOVER_ANIM') {
+        sounds.playClick();
+        this.goToScoreScreen();
+        return;
+      }
       this.canvas.setPointerCapture(e.pointerId);
       handlePointerMove(e);
     });
@@ -983,6 +998,129 @@ class GameEngine {
     });
   }
 
+  // Helper to check if a column is clear to spawn a new object near the top
+  isColumnClear(colIndex) {
+    for (let i = 0; i < this.entities.length; i++) {
+      const entity = this.entities[i];
+      if (entity.isGameOverObject && entity.colIndex === colIndex && entity.y < 120) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Helper to check if all columns are fully filled up to the top
+  isGameOverScreenFilled() {
+    return this.columnHeights.every(h => h <= -100);
+  }
+
+  // Spawns a randomized object for the Game Over dramatic filling effect (column-restricted)
+  spawnGameOverObject(colIndex) {
+    const types = ['song', 'ponyan', 'pomu', 'pomi', 'unpo'];
+    const selectedType = types[Math.floor(Math.random() * types.length)];
+    const config = OBJECT_TYPES[selectedType];
+
+    const width = 60;
+    // Scale height to preserve aspect ratio of the original sprite relative to 60px width
+    const height = config.size.h * (60 / config.size.w);
+
+    const x = colIndex * 60;
+    const y = -height;
+
+    // Fixed speed for all falling objects to prevent overlapping while falling
+    const speed = 25;
+
+    // Full opacity (transparency removed as requested)
+    const ghostAlpha = 1.0;
+
+    // Random rotation: 0 to 2*PI, and some rotation speed so they spin while falling
+    const rotation = Math.random() * Math.PI * 2;
+    const rotationSpeed = (Math.random() - 0.5) * 0.15;
+
+    this.entities.push({
+      type: selectedType,
+      x,
+      y,
+      width,
+      height,
+      speed,
+      name: config.name,
+      isFast: false,
+      isGhost: false,
+      ghostAlpha,
+      sizeScale: 1.0,
+      isSpinning: true,
+      isSwaying: false,
+      rotation,
+      rotationSpeed,
+      swayRange: 0,
+      swaySpeed: 0,
+      swayAngle: 0,
+      baseX: x,
+      isGameOverObject: true,
+      colIndex: colIndex
+    });
+  }
+
+  // Update loop for the Game Over dramatic filling animation
+  updateGameOverAnim(dt) {
+    const timeScale = dt / 16.666;
+
+    // Spawn new objects rapidly if the screen is not completely filled yet
+    if (!this.isGameOverScreenFilled()) {
+      this.gameoverSpawnAccumulator = (this.gameoverSpawnAccumulator || 0) + dt;
+      // Spawn an object every 15ms of elapsed game time
+      while (this.gameoverSpawnAccumulator >= 15) {
+        // Find available columns that are not full and are clear at the top
+        const availableCols = [];
+        for (let c = 0; c < 9; c++) {
+          if (this.columnHeights[c] > -100 && this.isColumnClear(c)) {
+            availableCols.push(c);
+          }
+        }
+
+        if (availableCols.length > 0) {
+          const colIndex = availableCols[Math.floor(Math.random() * availableCols.length)];
+          this.spawnGameOverObject(colIndex);
+        }
+        this.gameoverSpawnAccumulator -= 15;
+      }
+    }
+
+    // Update positions and handle stacking against the columns
+    for (let i = 0; i < this.entities.length; i++) {
+      const entity = this.entities[i];
+      if (entity.isGameOverObject && entity.speed > 0) {
+        entity.y += entity.speed * timeScale;
+        if (entity.rotationSpeed) {
+          entity.rotation += entity.rotationSpeed * timeScale;
+        }
+
+        // Check if the bottom of the object hits or goes below its column's current stack height
+        const targetY = this.columnHeights[entity.colIndex] - entity.height;
+        if (entity.y >= targetY) {
+          entity.y = targetY;
+          entity.speed = 0; // stop falling
+          entity.rotationSpeed = 0; // stop spinning
+          // Update stack height for this column
+          this.columnHeights[entity.colIndex] -= entity.height;
+        }
+      }
+    }
+
+    // Update standard particle effects (for any wind particles)
+    this.spawnWindParticles();
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.age++;
+      if (p.age >= p.maxAge || p.x < -20 || p.y > CANVAS_HEIGHT) {
+        this.particles.splice(i, 1);
+      }
+    }
+  }
+
   // Increase difficulty over time (doubles every 3 minutes / 180 seconds)
   scaleDifficulty() {
     const elapsedSeconds = this.elapsedPlayTime / 1000;
@@ -1080,7 +1218,6 @@ class GameEngine {
   }
 
   gameOver() {
-    this.transitionTo('GAMEOVER');
     sounds.playGameOver();
 
     // High score verification
@@ -1090,7 +1227,16 @@ class GameEngine {
       this.isNewHighScore = true;
     }
 
-    // Initialize online ranking input form
+    // Initialize Game Over Animation properties
+    this.columnHeights = Array(9).fill(CANVAS_HEIGHT);
+    this.gameoverSpawnAccumulator = 0;
+
+    this.transitionTo('GAMEOVER_ANIM');
+  }
+
+  // Transitions from the animation to the actual score registration screen
+  goToScoreScreen() {
+    this.transitionTo('GAMEOVER');
     this.initScoreRegistration();
   }
 
@@ -1665,6 +1811,24 @@ class GameEngine {
       this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       this.ctx.restore();
     }
+
+    // 8. Draw "TAP TO CONTINUE" prompt during GameOver animation
+    if (this.state === 'GAMEOVER_ANIM') {
+      const blink = Math.floor(Date.now() / 400) % 2 === 0;
+      if (blink) {
+        this.ctx.save();
+        this.ctx.font = '22px "DotGothic16", monospace';
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 4;
+        this.ctx.textAlign = 'center';
+
+        const txt = this.i18n('click-to-continue');
+        this.ctx.strokeText(txt, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 150);
+        this.ctx.fillText(txt, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 150);
+        this.ctx.restore();
+      }
+    }
   }
 
   // Main game loop
@@ -1675,6 +1839,9 @@ class GameEngine {
 
     if (this.state === 'PLAYING') {
       this.update(dt);
+      this.draw();
+    } else if (this.state === 'GAMEOVER_ANIM') {
+      this.updateGameOverAnim(dt);
       this.draw();
     } else if (this.state === 'PAUSED' || this.state === 'GAMEOVER') {
       // Draw but don't update physics (maintains overlays correctly)
