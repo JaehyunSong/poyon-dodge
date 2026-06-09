@@ -608,6 +608,8 @@ class GameEngine {
     document.getElementById('game-hud').classList.add('hidden');
     document.getElementById('ranking-modal').classList.add('hidden');
     document.getElementById('ranking-registration').classList.add('hidden');
+    const statusContainer = document.getElementById('ranking-status-container');
+    if (statusContainer) statusContainer.classList.add('hidden');
 
     if (newState === 'TITLE') {
       document.getElementById('start-screen').classList.remove('hidden');
@@ -965,17 +967,25 @@ class GameEngine {
 
   // オンラインランキングの上位100位判定
   async checkOnlineRankingInclusion() {
+    const statusContainer = document.getElementById('ranking-status-container');
+    const statusMsg = document.getElementById('ranking-status-message');
     const regForm = document.getElementById('ranking-registration');
     const statusEl = document.getElementById('registration-status');
     const submitBtn = document.getElementById('btn-submit-score');
+    const actionsArea = document.getElementById('gameover-actions');
     if (!regForm) return;
 
+    // 初期状態：計算中メッセージを表示し、ボタン領域や入力フォームは非表示にする
+    if (statusContainer) statusContainer.classList.remove('hidden');
+    if (statusMsg) statusMsg.innerText = '順位を計算中...';
     regForm.classList.add('hidden');
+    if (actionsArea) actionsArea.classList.add('hidden');
     if (submitBtn) submitBtn.disabled = false;
-    if (statusEl) statusEl.innerText = 'ランキングデータ確認中...';
+    if (statusEl) statusEl.innerText = '';
 
     if (!RANKING_API_URL) {
-      if (statusEl) statusEl.innerText = 'ランキングAPIが設定されていません。';
+      if (statusMsg) statusMsg.innerText = 'ランキングAPIが設定されていません。';
+      if (actionsArea) actionsArea.classList.remove('hidden');
       return;
     }
 
@@ -1003,9 +1013,9 @@ class GameEngine {
       }
 
       if (eligibleForRanking) {
-        // ランクインした場合はフォームを表示
+        // ランクインした場合は計算中メッセージを消し、フォームを表示
+        if (statusContainer) statusContainer.classList.add('hidden');
         regForm.classList.remove('hidden');
-        if (statusEl) statusEl.innerText = '';
 
         // 規定値の名前をランダムで設定
         const nameInput = document.getElementById('player-name');
@@ -1017,14 +1027,14 @@ class GameEngine {
           nameInput.style.color = '#718096'; // プレースホルダー用の薄い文字色
         }
       } else {
-        // 100位未満の場合は「ランキング外」で自動送信
-        if (statusEl) statusEl.innerText = 'スコアを自動送信中...';
+        // 100位未満の場合は「ランキング外」メッセージを表示し、自動送信
+        if (statusMsg) statusMsg.innerText = 'ランキング外です（スコアは自動保存されました）';
         await this.submitScoreDirectly('ランキング外');
-        if (statusEl) statusEl.innerText = 'スコアが保存されました（100位以下：ランキング外）';
       }
     } catch (error) {
       console.error(error);
-      // 通信エラーなどの場合は手動送信可能にする
+      // 通信エラーなどの場合は手動送信フォームを表示
+      if (statusContainer) statusContainer.classList.add('hidden');
       regForm.classList.remove('hidden');
       if (statusEl) statusEl.innerText = '通信エラーが発生しました。手動で登録できます。';
       this.activeDefaultName = "ぽよんぽよん";
@@ -1033,6 +1043,9 @@ class GameEngine {
         nameInput.value = this.activeDefaultName;
         nameInput.style.color = '#718096';
       }
+    } finally {
+      // 判定処理がすべて終わったら（成功・失敗問わず）アクションボタンを表示
+      if (actionsArea) actionsArea.classList.remove('hidden');
     }
   }
 

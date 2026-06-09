@@ -83,7 +83,7 @@
 
           <div class="start-actions" style="display:flex; flex-direction:row; gap:12px; width:100%; max-width:380px;">
             <button id="btn-start" class="btn btn-primary btn-pulse" style="flex:1;">スタート</button>
-            <button id="btn-ranking" class="btn btn-secondary" style="flex:1;">ランキング</button>
+            <button id="btn-ranking" class="btn btn-pink" style="flex:1;">ランキング</button>
           </div>
         </div>
       </div>
@@ -93,7 +93,7 @@
         <div class="pause-content">
           <div class="pause-title">一時停止中</div>
           <button id="btn-resume" class="btn btn-primary">ゲームに戻る</button>
-          <button id="btn-to-title" class="btn btn-secondary">タイトルへ</button>
+          <button id="btn-to-title" class="btn btn-pink">タイトルへ</button>
         </div>
       </div>
 
@@ -118,6 +118,11 @@
             </div>
           </div>
 
+          <!-- オンラインランキングステータス（順位計算中/ランキング外） -->
+          <div id="ranking-status-container" class="ranking-status-container hidden">
+            <div id="ranking-status-message" class="ranking-status-message">順位を計算中...</div>
+          </div>
+
           <!-- オンラインランキング登録フォーム -->
           <div id="ranking-registration" class="ranking-registration hidden">
             <div class="registration-label">100位以内にランクイン！名前を入力してね</div>
@@ -128,9 +133,9 @@
             <div id="registration-status" class="registration-status"></div>
           </div>
 
-          <div class="gameover-actions">
+          <div id="gameover-actions" class="gameover-actions hidden">
             <button id="btn-restart" class="btn btn-primary btn-pulse">もういちど遊ぶ</button>
-            <button id="btn-gameover-title" class="btn btn-secondary">タイトルへ</button>
+            <button id="btn-gameover-title" class="btn btn-pink">タイトルへ</button>
           </div>
         </div>
       </div>
