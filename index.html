@@ -33,7 +33,10 @@
         <!-- Right: Score Info -->
         <div id="hud-score-container" class="hud-score-container">
           <div class="score-label">SCORE</div>
-          <div id="hud-score" class="hud-score">0</div>
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+            <span id="hud-multiplier" class="hud-multiplier hidden">5x</span>
+            <div id="hud-score" class="hud-score">0</div>
+          </div>
         </div>
       </div>
 
@@ -82,6 +85,10 @@
                 <img src="assets/pomi.png" class="inline-sprite" alt="ぽみ"><span data-i18n="instruction-or">や</span>
                 <canvas id="unpo-desc-canvas" width="20" height="20" class="inline-sprite-canvas"></canvas>
                 <span data-i18n="instruction-3">に当たると <strong>ダメージ！</strong></span>
+              </li>
+              <li>
+                <canvas id="carrot-desc-canvas" width="20" height="20" class="inline-sprite-canvas"></canvas>
+                <span data-i18n="instruction-carrot">をキャッチすると良いことがあるかも..?!</span>
               </li>
               <li data-i18n="instruction-4">時間経過とともに難易度アップ！</li>
             </ul>

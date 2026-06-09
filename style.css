@@ -1053,3 +1053,17 @@ body {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
+
+.hud-multiplier {
+  font-family: var(--font-retro);
+  font-size: 14px;
+  font-weight: bold;
+  color: #ff9f1c;
+  text-shadow: 1px 1px 0 #1a202c;
+  animation: multiplier-pulse 0.4s infinite alternate;
+}
+
+@keyframes multiplier-pulse {
+  from { transform: scale(0.95); opacity: 0.8; }
+  to { transform: scale(1.15); opacity: 1.0; }
+}

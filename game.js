@@ -35,12 +35,14 @@ const TRANSLATIONS = {
     "no-data": "データがありません。最初の登録者になろう！",
     "float-life-up": "残機 +1",
     "float-points-suffix": "点",
+    "float-score-fever": "スコア5倍！",
     "status-submitting": "送信中...",
     "status-success": "登録完了しました！",
     "status-fail": "送信に失敗しました。再試行してください。",
     "status-error": "ランキングの取得に失敗しました。",
     "time-unit": "秒",
-    "click-to-continue": "画面タップ または キー入力で次へ"
+    "click-to-continue": "画面タップ または キー入力で次へ",
+    "instruction-carrot": "をキャッチすると良いことがあるかも..?!"
   },
   ko: {
     "title": "뽀용뽀용의 비사이로막가 대작전 | Poyonpoyon Dodge Game",
@@ -53,6 +55,7 @@ const TRANSLATIONS = {
     "instruction-2": "을 캐치하면 <strong>목숨+1!</strong>",
     "instruction-3": "에 부딪히면 <strong>대미지!</strong>",
     "instruction-or": " 또는 ",
+    "instruction-carrot": "을 캐치하면 좋은 일이 일어날지도..?!",
     "instruction-4": "시간이 지날수록 난이도 업!",
     "btn-start": "스타트",
     "btn-ranking": "랭킹",
@@ -73,6 +76,7 @@ const TRANSLATIONS = {
     "no-data": "데이터가 없습니다. 첫 번째 등록자가 되어보세요!",
     "float-life-up": "목숨 +1",
     "float-points-suffix": "점",
+    "float-score-fever": "스코어 5배!",
     "status-submitting": "전송 중...",
     "status-success": "등록 완료되었습니다!",
     "status-fail": "전송에 실패했습니다. 다시 시도해주세요.",
@@ -112,7 +116,8 @@ const ASSET_PATHS = {
 
 // Falling object configurations
 const OBJECT_TYPES = {
-  song: { name: 'ソン先生', points: 10, lifeChg: 1, prob: 0.05, speedMult: 1.0, size: { w: 64, h: 55 } },
+  song: { name: 'ソン先生', points: 10, lifeChg: 1, prob: 0.04, speedMult: 1.0, size: { w: 64, h: 55 } },
+  carrot: { name: 'キャロット', points: 0, lifeChg: 0, prob: 0.01, speedMult: 1.1, size: { w: 45, h: 45 } },
   ponyan: { name: 'ぽにゃん', points: -3, lifeChg: -1, prob: 0.30, speedMult: 0.95, size: { w: 60, h: 51 } },
   pomu: { name: 'ぽむ', points: -2, lifeChg: -1, prob: 0.30, speedMult: 1.05, size: { w: 60, h: 51 } },
   pomi: { name: 'ぽみ', points: -1, lifeChg: -1, prob: 0.30, speedMult: 0.9, size: { w: 60, h: 51 } },
@@ -146,6 +151,36 @@ const POOP_COLORS = {
   2: '#d7a15c', // Highlight
   3: '#9f6532', // Medium brown
   4: '#592e12'  // Dark brown
+};
+
+// Carrot 16x16 Pixel Matrix for programmatic generation
+const CARROT_MATRIX = [
+  [0, 0, 4, 4, 0, 0, 0, 0, 0, 0, 4, 4, 0, 0, 0, 0],
+  [0, 0, 4, 5, 4, 0, 4, 4, 0, 4, 5, 4, 0, 0, 0, 0],
+  [0, 0, 0, 4, 5, 4, 5, 5, 4, 5, 4, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 3, 3, 3, 2, 2, 2, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 3, 3, 3, 2, 2, 2, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 3, 3, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 3, 3, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 1, 3, 3, 2, 2, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 1, 3, 3, 2, 2, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 1, 3, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+];
+
+// Color mapping for carrot sprite
+const CARROT_COLORS = {
+  0: 'transparent',
+  1: '#4a1d00', // Outline
+  2: '#e65c00', // Orange body
+  3: '#ff9933', // Highlight orange
+  4: '#38b000', // Green leaves
+  5: '#1b4d00'  // Dark green leaves
 };
 
 // ==========================================================================
@@ -336,6 +371,9 @@ class GameEngine {
 
     this.images = {};
     this.unpoCanvas = null; // Programmatic canvas for poop sprite
+    this.carrotCanvas = null; // Programmatic canvas for carrot sprite
+    this.scoreMultiplier = 1;
+    this.multiplierTimer = 0; // remaining time in ms for 2x score
     this.activeDefaultName = '';
 
     // Time tracking for day-night sync
@@ -457,6 +495,43 @@ class GameEngine {
     }
   }
 
+  // Create offscreen carrot sprite
+  createCarrotSprite() {
+    const cCanvas = document.createElement('canvas');
+    cCanvas.width = 16;
+    cCanvas.height = 16;
+    const cCtx = cCanvas.getContext('2d');
+
+    for (let r = 0; r < 16; r++) {
+      for (let c = 0; c < 16; c++) {
+        const colorId = CARROT_MATRIX[r][c];
+        if (colorId > 0) {
+          cCtx.fillStyle = CARROT_COLORS[colorId];
+          cCtx.fillRect(c, r, 1, 1);
+        }
+      }
+    }
+    this.carrotCanvas = cCanvas;
+  }
+
+  renderCarrotDescription() {
+    const canvas = document.getElementById('carrot-desc-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const pixelSize = canvas.width / 16;
+    for (let r = 0; r < 16; r++) {
+      for (let c = 0; c < 16; c++) {
+        const colorId = CARROT_MATRIX[r][c];
+        if (colorId > 0) {
+          ctx.fillStyle = CARROT_COLORS[colorId];
+          ctx.fillRect(c * pixelSize, r * pixelSize, pixelSize, pixelSize);
+        }
+      }
+    }
+  }
+
   switchLanguage(lang) {
     this.lang = lang;
     localStorage.setItem('pypy_lang', lang);
@@ -512,8 +587,14 @@ class GameEngine {
         // Build poop sprite
         this.createPoopSprite();
 
+        // Build carrot sprite
+        this.createCarrotSprite();
+
         // Render unpo description canvas on title screen
         this.renderUnpoDescription();
+
+        // Render carrot description canvas on title screen
+        this.renderCarrotDescription();
 
         // Show start screen
         setTimeout(() => {
@@ -818,6 +899,14 @@ class GameEngine {
     this.spawnInterval = 1200;
     this.baseSpeed = 5;
 
+    // Reset score multiplier
+    this.scoreMultiplier = 1;
+    this.multiplierTimer = 0;
+    const multEl = document.getElementById('hud-multiplier');
+    if (multEl) multEl.classList.add('hidden');
+    const scoreEl = document.getElementById('hud-score');
+    if (scoreEl) scoreEl.style.color = '#1a202c';
+
     // Reset player position
     this.player.x = CANVAS_WIDTH / 2 - 30;
     this.player.targetX = CANVAS_WIDTH / 2 - 30;
@@ -927,7 +1016,9 @@ class GameEngine {
 
     // Roll for individual independent gimmicks
     const isFast = Math.random() < 0.20; // 20% chance to be extra fast
-    const isGhost = Math.random() < 0.15; // 15% chance to be semi-transparent
+    
+    // Carrots should not have the ghost/transparency gimmick applied
+    const isGhost = (selectedType === 'carrot') ? false : (Math.random() < 0.15); // 15% chance to be semi-transparent
     let ghostAlpha = 1.0;
     if (isGhost) {
       const alphas = [0.75, 0.5, 0.25];
@@ -1178,13 +1269,35 @@ class GameEngine {
         this.updateLivesHUD();
         this.spawnFloatingText(this.i18n('float-life-up'), entity.x + entity.width / 2, entity.y, '#38b000');
       } else {
-        this.score += config.points;
+        const gainedPoints = config.points * this.scoreMultiplier;
+        this.score += gainedPoints;
         this.updateScoreHUD();
-        this.spawnFloatingText(`+${config.points} ${this.i18n('float-points-suffix')}`, entity.x + entity.width / 2, entity.y, '#38b000');
+        this.spawnFloatingText(`+${gainedPoints} ${this.i18n('float-points-suffix')}`, entity.x + entity.width / 2, entity.y, '#38b000');
       }
 
       // Green shiny particles burst
       this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, '#70e000', 12);
+    }
+    else if (entity.type === 'carrot') {
+      // Catching Carrot: Positive! 10s 5x Score Fever!
+      sounds.playPowerup();
+
+      this.scoreMultiplier = 5;
+      this.multiplierTimer = 10000; // 10 seconds
+
+      // Show multiplier indicator on HUD
+      const multEl = document.getElementById('hud-multiplier');
+      if (multEl) {
+        multEl.innerText = "5x";
+        multEl.classList.remove('hidden');
+      }
+      const scoreEl = document.getElementById('hud-score');
+      if (scoreEl) scoreEl.style.color = '#ff9f1c'; // Gold/orange score text during 5x
+
+      this.spawnFloatingText(this.i18n('float-score-fever'), entity.x + entity.width / 2, entity.y, '#ff9e00');
+
+      // Orange shiny particles burst
+      this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, '#ff9933', 15);
     }
     else {
       // Colliding with other characters/poop: Negative!
@@ -1465,6 +1578,19 @@ class GameEngine {
     const now = Date.now();
     const timeScale = dt / 16.666; // Normalized to 60fps speed
 
+    // Update score multiplier timer
+    if (this.multiplierTimer > 0) {
+      this.multiplierTimer -= dt;
+      if (this.multiplierTimer <= 0) {
+        this.scoreMultiplier = 1;
+        this.spawnFloatingText("5x End", this.player.x + this.player.width / 2, this.player.y - 20, '#ff9e00');
+        const multEl = document.getElementById('hud-multiplier');
+        if (multEl) multEl.classList.add('hidden');
+        const scoreEl = document.getElementById('hud-score');
+        if (scoreEl) scoreEl.style.color = '#1a202c';
+      }
+    }
+
     // Update Weather Particles spawning
     if (this.weather === 'SNOW') {
       if (Math.random() < 0.35) {
@@ -1606,7 +1732,7 @@ class GameEngine {
     this.elapsedPlayTime = now - this.startTime;
     if (now - this.lastTimeIncrement >= 1000) {
       this.timeSurvived += 1;
-      this.score += 1;
+      this.score += 1 * this.scoreMultiplier;
       this.updateScoreHUD();
       this.lastTimeIncrement = now;
     }
@@ -1707,7 +1833,7 @@ class GameEngine {
 
     // 2. Draw Falling Objects
     this.entities.forEach(entity => {
-      const img = entity.type === 'unpo' ? this.unpoCanvas : this.images[entity.type];
+      const img = entity.type === 'unpo' ? this.unpoCanvas : (entity.type === 'carrot' ? this.carrotCanvas : this.images[entity.type]);
       if (img) {
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.save();
