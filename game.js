@@ -1,18 +1,16 @@
 /**
  * Poyonpoyon Dodge Game (ぽよんぽよんのよけよけ大作戦)
- * Core Game Logic File
  */
-
 const TRANSLATIONS = {
   ja: {
     "title": "ぽよんぽよんのよけよけ大作戦 | Poyonpoyon Dodge Game",
-    "meta-desc": "空から降ってくる猫たちを避けて、ソン先生をキャッチしよう！ぽよんぽよんが主人公のドット絵アクションゲーム。",
+    "meta-desc": "空から降ってくる猫たちを避けて、キャロットやソン先生をキャッチしよう！ぽよんぽよんが主人公のドット絵アクションゲーム。",
     "loading-status": "アセットを読み込み中...",
     "title-sub": "ぽよんぽよんの",
     "title-main": "よけよけ大作戦",
     "instructions-title": "あそびかた",
     "instruction-1": "左右にドラッグ（または左右矢印キー）でぽよんぽよんを動かそう！",
-    "instruction-2": "をキャッチすると <strong>残機+1！</strong>",
+    "instruction-2": "をキャッチすると良いことがあるかも...?!",
     "instruction-3": "に当たると <strong>ダメージ！</strong>",
     "instruction-or": "や",
     "instruction-4": "時間経過とともに難易度アップ！",
@@ -35,27 +33,27 @@ const TRANSLATIONS = {
     "no-data": "データがありません。最初の登録者になろう！",
     "float-life-up": "残機 +1",
     "float-points-suffix": "点",
-    "float-score-fever": "スコア5倍！",
+    "float-score-fever": "スコア10倍！",
     "status-submitting": "送信中...",
     "status-success": "登録完了しました！",
     "status-fail": "送信に失敗しました。再試行してください。",
     "status-error": "ランキングの取得に失敗しました。",
     "time-unit": "秒",
     "click-to-continue": "画面タップ または キー入力で次へ",
-    "instruction-carrot": "をキャッチすると良いことがあるかも..?!"
+    "instruction-carrot": "をキャッチすると <strong>残機+1！</strong>"
   },
   ko: {
     "title": "뽀용뽀용의 비사이로막가 대작전 | Poyonpoyon Dodge Game",
-    "meta-desc": "하늘에서 떨어지는 고양이들을 피하며 송센세를 잡으세요! 뽀용뽀용이 주인공인 도트 액션 게임.",
+    "meta-desc": "하늘에서 떨어지는 고양이들을 피하며 캐럿이나 송센세를 잡으세요! 뽀용뽀용이 주인공인 도트 액션 게임.",
     "loading-status": "에셋 불러오는 중...",
     "title-sub": "뽀용뽀용의",
     "title-main": "비사이로막가 대작전",
     "instructions-title": "게임 방법",
     "instruction-1": "좌우로 드래그 (또는 좌우 화살표 키) 하여 뽀용뽀용을 움직이세요!",
-    "instruction-2": "을 캐치하면 <strong>목숨+1!</strong>",
+    "instruction-2": "를 캐치하면 좋은 일이 생길지도...?!",
     "instruction-3": "에 부딪히면 <strong>대미지!</strong>",
     "instruction-or": " 또는 ",
-    "instruction-carrot": "을 캐치하면 좋은 일이 일어날지도..?!",
+    "instruction-carrot": "을 캐치하면 <strong>목숨+1!</strong>",
     "instruction-4": "시간이 지날수록 난이도 업!",
     "btn-start": "스타트",
     "btn-ranking": "랭킹",
@@ -76,7 +74,7 @@ const TRANSLATIONS = {
     "no-data": "데이터가 없습니다. 첫 번째 등록자가 되어보세요!",
     "float-life-up": "목숨 +1",
     "float-points-suffix": "점",
-    "float-score-fever": "스코어 5배!",
+    "float-score-fever": "스코어 10배!",
     "status-submitting": "전송 중...",
     "status-success": "등록 완료되었습니다!",
     "status-fail": "전송에 실패했습니다. 다시 시도해주세요.",
@@ -116,8 +114,8 @@ const ASSET_PATHS = {
 
 // Falling object configurations
 const OBJECT_TYPES = {
-  song: { name: 'ソン先生', points: 10, lifeChg: 1, prob: 0.04, speedMult: 1.0, size: { w: 64, h: 55 } },
-  carrot: { name: 'キャロット', points: 0, lifeChg: 0, prob: 0.01, speedMult: 1.1, size: { w: 45, h: 45 } },
+  song: { name: 'ソン先生', points: 0, lifeChg: 0, prob: 0.01, speedMult: 1.0, size: { w: 64, h: 55 } },
+  carrot: { name: 'キャロット', points: 50, lifeChg: 1, prob: 0.04, speedMult: 1.1, size: { w: 45, h: 45 } },
   ponyan: { name: 'ぽにゃん', points: -3, lifeChg: -1, prob: 0.30, speedMult: 0.95, size: { w: 60, h: 51 } },
   pomu: { name: 'ぽむ', points: -2, lifeChg: -1, prob: 0.30, speedMult: 1.05, size: { w: 60, h: 51 } },
   pomi: { name: 'ぽみ', points: -1, lifeChg: -1, prob: 0.30, speedMult: 0.9, size: { w: 60, h: 51 } },
@@ -532,6 +530,24 @@ class GameEngine {
     }
   }
 
+  renderCarrotPreview() {
+    const canvas = document.getElementById('carrot-preview-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const pixelSize = canvas.width / 16;
+    for (let r = 0; r < 16; r++) {
+      for (let c = 0; c < 16; c++) {
+        const colorId = CARROT_MATRIX[r][c];
+        if (colorId > 0) {
+          ctx.fillStyle = CARROT_COLORS[colorId];
+          ctx.fillRect(c * pixelSize, r * pixelSize, pixelSize, pixelSize);
+        }
+      }
+    }
+  }
+
   switchLanguage(lang) {
     this.lang = lang;
     localStorage.setItem('pypy_lang', lang);
@@ -595,6 +611,9 @@ class GameEngine {
 
         // Render carrot description canvas on title screen
         this.renderCarrotDescription();
+
+        // Render carrot preview canvas on title screen
+        this.renderCarrotPreview();
 
         // Show start screen
         setTimeout(() => {
@@ -1017,8 +1036,8 @@ class GameEngine {
     // Roll for individual independent gimmicks
     const isFast = Math.random() < 0.20; // 20% chance to be extra fast
     
-    // Carrots should not have the ghost/transparency gimmick applied
-    const isGhost = (selectedType === 'carrot') ? false : (Math.random() < 0.15); // 15% chance to be semi-transparent
+    // Song-sensei should not have the ghost/transparency gimmick applied
+    const isGhost = (selectedType === 'song') ? false : (Math.random() < 0.15); // 15% chance to be semi-transparent
     let ghostAlpha = 1.0;
     if (isGhost) {
       const alphas = [0.75, 0.5, 0.25];
@@ -1221,15 +1240,15 @@ class GameEngine {
     }
   }
 
-  // Increase difficulty over time (doubles every 3 minutes / 180 seconds)
+  // Increase difficulty over time (1.5x every 3 minutes / 180 seconds)
   scaleDifficulty() {
     const elapsedSeconds = this.elapsedPlayTime / 1000;
-    const multiplier = Math.pow(2, elapsedSeconds / 180);
+    const multiplier = Math.pow(1.5, elapsedSeconds / 180);
 
-    // Base speed starts at 5 and doubles every 3 minutes
+    // Base speed starts at 5 and increases 1.5x every 3 minutes
     this.baseSpeed = 5 * multiplier;
 
-    // Spawn rate doubles every 3 minutes (spawn interval is halved, min cap of 100ms)
+    // Spawn rate increases 1.5x every 3 minutes (spawn interval is divided by multiplier, min cap of 100ms)
     this.spawnInterval = Math.max(100, 1200 / multiplier);
   }
 
@@ -1260,8 +1279,8 @@ class GameEngine {
   handleCollision(entity) {
     const config = OBJECT_TYPES[entity.type];
 
-    if (entity.type === 'song') {
-      // Catching Song-sensei: Positive!
+    if (entity.type === 'carrot') {
+      // Catching Carrot: Positive! Recover life, or if at max life, get 50 points
       sounds.playCoin();
 
       if (this.lives < MAX_LIVES) {
@@ -1278,21 +1297,21 @@ class GameEngine {
       // Green shiny particles burst
       this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, '#70e000', 12);
     }
-    else if (entity.type === 'carrot') {
-      // Catching Carrot: Positive! 10s 5x Score Fever!
+    else if (entity.type === 'song') {
+      // Catching Song-sensei: Positive! 10s 10x Score Fever!
       sounds.playPowerup();
 
-      this.scoreMultiplier = 5;
+      this.scoreMultiplier = 10;
       this.multiplierTimer = 10000; // 10 seconds
 
       // Show multiplier indicator on HUD
       const multEl = document.getElementById('hud-multiplier');
       if (multEl) {
-        multEl.innerText = "5x";
+        multEl.innerText = "10x";
         multEl.classList.remove('hidden');
       }
       const scoreEl = document.getElementById('hud-score');
-      if (scoreEl) scoreEl.style.color = '#ff9f1c'; // Gold/orange score text during 5x
+      if (scoreEl) scoreEl.style.color = '#ff9f1c'; // Gold/orange score text during 10x
 
       this.spawnFloatingText(this.i18n('float-score-fever'), entity.x + entity.width / 2, entity.y, '#ff9e00');
 
@@ -1583,7 +1602,7 @@ class GameEngine {
       this.multiplierTimer -= dt;
       if (this.multiplierTimer <= 0) {
         this.scoreMultiplier = 1;
-        this.spawnFloatingText("5x End", this.player.x + this.player.width / 2, this.player.y - 20, '#ff9e00');
+        this.spawnFloatingText("10x End", this.player.x + this.player.width / 2, this.player.y - 20, '#ff9e00');
         const multEl = document.getElementById('hud-multiplier');
         if (multEl) multEl.classList.add('hidden');
         const scoreEl = document.getElementById('hud-score');

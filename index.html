@@ -67,9 +67,9 @@
           
           <div class="title-character-container">
             <div class="preview-sprite sprite-pomi"></div>
-            <div class="preview-sprite sprite-song"></div>
-            <div class="preview-sprite sprite-life"></div>
             <div class="preview-sprite sprite-ponyan"></div>
+            <div class="preview-sprite sprite-life"></div>
+            <div class="preview-sprite sprite-song"></div>
             <div class="preview-sprite sprite-pomu"></div>
           </div>
 
@@ -78,7 +78,10 @@
             <div class="instructions-title" data-i18n="instructions-title">あそびかた</div>
             <ul class="instructions-list">
               <li data-i18n="instruction-1">左右にドラッグ（または左右矢印キー）でぽよんぽよんを動かそう！</li>
-              <li><img src="assets/song.png" class="inline-sprite" alt="ソン先生"><span data-i18n="instruction-2">をキャッチすると <strong>残機+1！</strong></span></li>
+              <li>
+                <canvas id="carrot-desc-canvas" width="20" height="20" class="inline-sprite-canvas"></canvas>
+                <span data-i18n="instruction-carrot">をキャッチすると <strong>残機+1！</strong></span>
+              </li>
               <li>
                 <img src="assets/ponyan.png" class="inline-sprite" alt="ぽにゃん">
                 <img src="assets/pomu.png" class="inline-sprite" alt="ぽむ">
@@ -87,8 +90,8 @@
                 <span data-i18n="instruction-3">に当たると <strong>ダメージ！</strong></span>
               </li>
               <li>
-                <canvas id="carrot-desc-canvas" width="20" height="20" class="inline-sprite-canvas"></canvas>
-                <span data-i18n="instruction-carrot">をキャッチすると良いことがあるかも..?!</span>
+                <img src="assets/song.png" class="inline-sprite" alt="ソン先生">
+                <span data-i18n="instruction-2">をキャッチすると良いことがあるかも...?!</span>
               </li>
               <li data-i18n="instruction-4">時間経過とともに難易度アップ！</li>
             </ul>
