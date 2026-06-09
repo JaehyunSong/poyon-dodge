@@ -1319,39 +1319,57 @@ class GameEngine {
       this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, '#ff9933', 15);
     }
     else {
-      // Colliding with other characters/poop: Negative!
-      if (this.player.invulnerable) return; // Ignore damage during invulnerability frames
+      // Colliding with other characters/poop: Negative (or positive during Song-sensei fever!)
+      const isFever = this.scoreMultiplier === 10;
 
-      if (entity.type === 'unpo') {
-        sounds.playUnpo();
-      } else {
-        sounds.playHit();
+      if (isFever) {
+        // Caught during Song-sensei fever: positive bonus!
+        sounds.playCoin();
+
+        const bonusPoints = Math.abs(config.points);
+        this.score += bonusPoints;
+
+        // Floating score pop
+        this.spawnFloatingText(`+${bonusPoints} ${this.i18n('float-points-suffix')}`, entity.x + entity.width / 2, entity.y, '#38b000');
+
+        // Burst particles depending on object type
+        const burstColor = entity.type === 'unpo' ? '#8c5830' : '#ff477e';
+        this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, burstColor, 10);
       }
+      else {
+        if (this.player.invulnerable) return; // Ignore damage during invulnerability frames
 
-      // Damage screen shake
-      this.triggerShake(10, 250);
+        if (entity.type === 'unpo') {
+          sounds.playUnpo();
+        } else {
+          sounds.playHit();
+        }
 
-      // Score deduction (cap at 0)
-      this.score = Math.max(0, this.score + config.points);
+        // Damage screen shake
+        this.triggerShake(10, 250);
 
-      // Life reduction
-      this.lives += config.lifeChg;
-      this.updateLivesHUD();
+        // Score deduction (cap at 0)
+        this.score = Math.max(0, this.score + config.points);
 
-      // Trigger brief invulnerability frames
-      this.player.invulnerable = true;
-      this.player.invulnTime = 500; // 0.5s
+        // Life reduction
+        this.lives += config.lifeChg;
+        this.updateLivesHUD();
 
-      // Floating score pop
-      this.spawnFloatingText(`${config.points} ${this.i18n('float-points-suffix')}`, entity.x + entity.width / 2, entity.y, '#d90429');
+        // Trigger brief invulnerability frames
+        this.player.invulnerable = true;
+        this.player.invulnTime = 500; // 0.5s
 
-      // Burst particles depending on object type
-      const burstColor = entity.type === 'unpo' ? '#8c5830' : '#ff477e';
-      this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, burstColor, 10);
+        // Floating score pop
+        this.spawnFloatingText(`${config.points} ${this.i18n('float-points-suffix')}`, entity.x + entity.width / 2, entity.y, '#d90429');
 
-      // Verify game over
-      if (this.lives <= 0) {
-        this.gameOver();
+        // Burst particles depending on object type
+        const burstColor = entity.type === 'unpo' ? '#8c5830' : '#ff477e';
+        this.spawnBurst(entity.x + entity.width / 2, entity.y + entity.height / 2, burstColor, 10);
+
+        // Verify game over
+        if (this.lives <= 0) {
+          this.gameOver();
+        }
       }
     }
 
