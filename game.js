@@ -608,8 +608,6 @@ class GameEngine {
     document.getElementById('game-hud').classList.add('hidden');
     document.getElementById('ranking-modal').classList.add('hidden');
     document.getElementById('ranking-registration').classList.add('hidden');
-    const statusContainer = document.getElementById('ranking-status-container');
-    if (statusContainer) statusContainer.classList.add('hidden');
 
     if (newState === 'TITLE') {
       document.getElementById('start-screen').classList.remove('hidden');
@@ -961,91 +959,29 @@ class GameEngine {
       this.isNewHighScore = true;
     }
 
-    // Check online ranking inclusion
-    this.checkOnlineRankingInclusion();
+    // Initialize online ranking input form
+    this.initScoreRegistration();
   }
 
-  // オンラインランキングの上位100位判定
-  async checkOnlineRankingInclusion() {
-    const statusContainer = document.getElementById('ranking-status-container');
-    const statusMsg = document.getElementById('ranking-status-message');
+  // オンラインランキング登録フォームの初期化
+  initScoreRegistration() {
     const regForm = document.getElementById('ranking-registration');
     const statusEl = document.getElementById('registration-status');
     const submitBtn = document.getElementById('btn-submit-score');
-    const actionsArea = document.getElementById('gameover-actions');
     if (!regForm) return;
 
-    // 初期状態：計算中メッセージを表示し、ボタン領域や入力フォームは非表示にする
-    if (statusContainer) statusContainer.classList.remove('hidden');
-    if (statusMsg) statusMsg.innerText = '順位を計算中...';
-    regForm.classList.add('hidden');
-    if (actionsArea) actionsArea.classList.add('hidden');
+    regForm.classList.remove('hidden');
     if (submitBtn) submitBtn.disabled = false;
     if (statusEl) statusEl.innerText = '';
 
-    if (!RANKING_API_URL) {
-      if (statusMsg) statusMsg.innerText = 'ランキングAPIが設定されていません。';
-      if (actionsArea) actionsArea.classList.remove('hidden');
-      return;
-    }
-
-    try {
-      // タイムアウト付きフェッチ (5秒)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      const response = await fetch(RANKING_API_URL, { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (!response.ok) throw new Error('API取得エラー');
-      const rankings = await response.json();
-
-      let eligibleForRanking = false;
-
-      // 取得件数が100件未満、もしくは現在のスコアが100位のスコア以上であればランクイン
-      if (rankings.length < 100) {
-        eligibleForRanking = true;
-      } else {
-        const lastEntry = rankings[rankings.length - 1];
-        if (this.score >= lastEntry.score) {
-          eligibleForRanking = true;
-        }
-      }
-
-      if (eligibleForRanking) {
-        // ランクインした場合は計算中メッセージを消し、フォームを表示
-        if (statusContainer) statusContainer.classList.add('hidden');
-        regForm.classList.remove('hidden');
-
-        // 規定値の名前をランダムで設定
-        const nameInput = document.getElementById('player-name');
-        if (nameInput) {
-          const DEFAULT_NAMES = ["ぽよんぽよん", "ソン先生", "ぽにゃん", "ぽむ", "ぽみ"];
-          const randomName = DEFAULT_NAMES[Math.floor(Math.random() * DEFAULT_NAMES.length)];
-          this.activeDefaultName = randomName;
-          nameInput.value = randomName;
-          nameInput.style.color = '#718096'; // プレースホルダー用の薄い文字色
-        }
-      } else {
-        // 100位未満の場合は「ランキング外」メッセージを表示し、自動送信
-        if (statusMsg) statusMsg.innerText = 'ランキング外です（スコアは自動保存されました）';
-        await this.submitScoreDirectly('ランキング外');
-      }
-    } catch (error) {
-      console.error(error);
-      // 通信エラーなどの場合は手動送信フォームを表示
-      if (statusContainer) statusContainer.classList.add('hidden');
-      regForm.classList.remove('hidden');
-      if (statusEl) statusEl.innerText = '通信エラーが発生しました。手動で登録できます。';
-      this.activeDefaultName = "ぽよんぽよん";
-      const nameInput = document.getElementById('player-name');
-      if (nameInput) {
-        nameInput.value = this.activeDefaultName;
-        nameInput.style.color = '#718096';
-      }
-    } finally {
-      // 判定処理がすべて終わったら（成功・失敗問わず）アクションボタンを表示
-      if (actionsArea) actionsArea.classList.remove('hidden');
+    // 規定値の名前をランダムで設定
+    const nameInput = document.getElementById('player-name');
+    if (nameInput) {
+      const DEFAULT_NAMES = ["ぽよんぽよん", "ソン先生", "ぽにゃん", "ぽむ", "ぽみ"];
+      const randomName = DEFAULT_NAMES[Math.floor(Math.random() * DEFAULT_NAMES.length)];
+      this.activeDefaultName = randomName;
+      nameInput.value = randomName;
+      nameInput.style.color = '#718096'; // プレースホルダー用の薄い文字色
     }
   }
 
