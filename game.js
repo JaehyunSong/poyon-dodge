@@ -1341,10 +1341,10 @@ class GameEngine {
       const isFever = this.scoreMultiplier === 10;
 
       if (isFever) {
-        // Caught during Song-sensei fever: positive bonus!
+        // Caught during Song-sensei fever: positive bonus! (multiplied by 10)
         sounds.playCoin();
 
-        const bonusPoints = Math.abs(config.points);
+        const bonusPoints = Math.abs(config.points) * this.scoreMultiplier;
         this.score += bonusPoints;
 
         // Floating score pop
@@ -1865,6 +1865,21 @@ class GameEngine {
       }
     });
 
+    // Draw Fever Countdown (large semi-transparent number in screen center background)
+    if (this.state === 'PLAYING' && this.multiplierTimer > 0 && this.multiplierTimer <= 10000) {
+      const countdownVal = Math.ceil(this.multiplierTimer / 1000);
+      this.ctx.save();
+      this.ctx.font = 'bold 120px "DotGothic16", monospace';
+      this.ctx.fillStyle = 'rgba(255, 159, 28, 0.4)'; // Gold/Orange semi-transparent
+      this.ctx.strokeStyle = 'rgba(26, 32, 44, 0.3)';
+      this.ctx.lineWidth = 12;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.strokeText(countdownVal, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+      this.ctx.fillText(countdownVal, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+      this.ctx.restore();
+    }
+
     // Draw Weather Particles (behind objects but in front of wind sparkles)
     if (this.weatherParticles && this.weatherParticles.length > 0) {
       this.ctx.save();
@@ -1993,20 +2008,7 @@ class GameEngine {
     this.ctx.globalAlpha = 1.0;
     this.ctx.restore();
 
-    // Draw Fever Countdown (large semi-transparent number in screen center)
-    if (this.state === 'PLAYING' && this.multiplierTimer > 0 && this.multiplierTimer <= 10000) {
-      const countdownVal = Math.ceil(this.multiplierTimer / 1000);
-      this.ctx.save();
-      this.ctx.font = 'bold 120px "DotGothic16", monospace';
-      this.ctx.fillStyle = 'rgba(255, 159, 28, 0.4)'; // Gold/Orange semi-transparent
-      this.ctx.strokeStyle = 'rgba(26, 32, 44, 0.3)';
-      this.ctx.lineWidth = 12;
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.strokeText(countdownVal, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
-      this.ctx.fillText(countdownVal, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
-      this.ctx.restore();
-    }
+
 
     // 7. Draw Lightning Flash (Foreground overlay screen flash, outside camera shake context)
     if (this.lightningFlash > 0) {
