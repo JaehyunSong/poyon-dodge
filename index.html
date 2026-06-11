@@ -30,14 +30,19 @@
           <!-- Hearts will be dynamically injected here -->
         </div>
         
-        <!-- Right: Score Info -->
+        <!-- Center: Score Info -->
         <div id="hud-score-container" class="hud-score-container">
           <div class="score-label">SCORE</div>
-          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
             <span id="hud-multiplier" class="hud-multiplier hidden">5x</span>
             <div id="hud-score" class="hud-score">0</div>
           </div>
         </div>
+
+        <!-- Right: Pause Button -->
+        <button id="btn-pause-trigger" class="btn-pause-trigger hidden" aria-label="ポーズ">
+          <span class="pause-icon"></span>
+        </button>
       </div>
 
       <!-- Loading Screen Overlay -->
@@ -151,10 +156,7 @@
         </div>
       </div>
 
-      <!-- Pause Button (Small icon on screen) -->
-      <button id="btn-pause-trigger" class="btn-pause-trigger hidden" aria-label="ポーズ">
-        <span class="pause-icon"></span>
-      </button>
+
 
       <!-- Ranking Modal Overlay -->
       <div id="ranking-modal" class="screen-overlay hidden">

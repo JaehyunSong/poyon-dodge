@@ -182,7 +182,7 @@ body {
   padding: 16px 20px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   z-index: 10;
   pointer-events: none;
 }
@@ -219,7 +219,7 @@ body {
 .hud-score-container {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   background: rgba(255, 255, 255, 0.85);
   padding: 6px 12px;
   border-radius: 8px;
@@ -620,9 +620,6 @@ body {
 
 /* Pause Trigger Button */
 .btn-pause-trigger {
-  position: absolute;
-  top: 16px;
-  right: 150px; /* Positioned dynamically relative to score */
   width: 32px;
   height: 32px;
   background: rgba(255, 255, 255, 0.85);
@@ -638,6 +635,7 @@ body {
   user-select: auto;
   -webkit-user-select: auto;
   touch-action: manipulation;
+  pointer-events: auto;
 }
 
 .btn-pause-trigger:active {
@@ -651,13 +649,6 @@ body {
   border-left: 3px solid #1a202c;
   border-right: 3px solid #1a202c;
   background: transparent;
-}
-
-/* Adjust pause button location relative to score panel width */
-@media (max-width: 480px) {
-  .btn-pause-trigger {
-    right: 140px;
-  }
 }
 
 /* ==========================================================================

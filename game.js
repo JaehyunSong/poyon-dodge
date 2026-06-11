@@ -1334,7 +1334,7 @@ class GameEngine {
       if (this.lives < MAX_LIVES) {
         this.lives += config.lifeChg;
         this.updateLivesHUD();
-        this.spawnFloatingText(this.i18n('float-life-up'), entity.x + entity.width / 2, entity.y, '#38b000');
+        this.spawnFloatingText('+1', entity.x + entity.width / 2, entity.y, '#38b000', 'life');
       } else {
         const gainedPoints = config.points * this.scoreMultiplier;
         this.score += gainedPoints;
@@ -1610,12 +1610,13 @@ class GameEngine {
   // ==========================================================================
 
   // Spawn a floating text effect
-  spawnFloatingText(str, x, y, color) {
+  spawnFloatingText(str, x, y, color, imageKey = null) {
     this.floatingTexts.push({
       str,
       x,
       y,
       color,
+      imageKey,
       age: 0,
       maxAge: 45 // Frames
     });
@@ -2041,15 +2042,34 @@ class GameEngine {
       this.ctx.fillStyle = ft.color;
       this.ctx.strokeStyle = '#1a202c';
       this.ctx.lineWidth = 4;
-      this.ctx.textAlign = 'center';
 
       // Fade out dynamically
       const opacity = 1 - (ft.age / ft.maxAge);
       this.ctx.globalAlpha = opacity;
 
-      // Text border outline
-      this.ctx.strokeText(ft.str, ft.x, ft.y);
-      this.ctx.fillText(ft.str, ft.x, ft.y);
+      if (ft.imageKey && this.images[ft.imageKey]) {
+        const img = this.images[ft.imageKey];
+        const imgSize = 20; // Size of life icon
+        const spacing = 4;  // Gap between icon and text
+        
+        this.ctx.textAlign = 'left';
+        const textWidth = this.ctx.measureText(ft.str).width;
+        const totalWidth = imgSize + spacing + textWidth;
+        
+        const startX = ft.x - totalWidth / 2;
+        
+        // Draw icon image (offset slightly up to align with text baseline)
+        this.ctx.drawImage(img, startX, ft.y - 16, imgSize, imgSize);
+        
+        // Draw text
+        const textX = startX + imgSize + spacing;
+        this.ctx.strokeText(ft.str, textX, ft.y);
+        this.ctx.fillText(ft.str, textX, ft.y);
+      } else {
+        this.ctx.textAlign = 'center';
+        this.ctx.strokeText(ft.str, ft.x, ft.y);
+        this.ctx.fillText(ft.str, ft.x, ft.y);
+      }
     });
 
     this.ctx.globalAlpha = 1.0;
