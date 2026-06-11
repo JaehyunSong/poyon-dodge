@@ -1052,23 +1052,53 @@ class GameEngine {
     const config = OBJECT_TYPES[selectedType];
 
     // Roll for individual independent gimmicks
-    const isFast = Math.random() < 0.20; // 20% chance to be extra fast
-    
-    // Song-sensei should not have the ghost/transparency gimmick applied
-    const isGhost = (selectedType === 'song') ? false : (Math.random() < 0.15); // 15% chance to be semi-transparent
+    const activeGimmicks = [];
+    if (Math.random() < 0.20) activeGimmicks.push('speed');
+    if (Math.random() < 0.20) activeGimmicks.push('size');
+    if (Math.random() < 0.15) activeGimmicks.push('ghost');
+    if (Math.random() < 0.25) activeGimmicks.push('spinning');
+    if (Math.random() < 0.25) activeGimmicks.push('swaying');
+
+    // Determine max gimmicks allowed for this object type
+    let maxGimmicks = 5;
+    if (selectedType === 'pomu') {
+      maxGimmicks = 4;
+    } else if (selectedType === 'pomi') {
+      maxGimmicks = 3;
+    }
+
+    // Prune random gimmicks if they exceed the maximum allowed count
+    while (activeGimmicks.length > maxGimmicks) {
+      const removeIndex = Math.floor(Math.random() * activeGimmicks.length);
+      activeGimmicks.splice(removeIndex, 1);
+    }
+
+    const hasSpeedChg = activeGimmicks.includes('speed');
+    const hasSizeChg = activeGimmicks.includes('size');
+    const isGhost = activeGimmicks.includes('ghost');
+    const isSpinning = activeGimmicks.includes('spinning');
+    const isSwaying = activeGimmicks.includes('swaying');
+
+    // Speed variation multiplier from gimmick
+    let speedGimmickMult = 1.0;
+    if (hasSpeedChg) {
+      const speeds = [0.8, 1.2, 1.4, 1.6];
+      speedGimmickMult = speeds[Math.floor(Math.random() * speeds.length)];
+    }
+
+    // Size variation scale from gimmick
+    let sizeScale = 1.0;
+    if (hasSizeChg) {
+      const sizes = [0.5, 0.75, 1.25, 1.5, 1.75, 2.0];
+      sizeScale = sizes[Math.floor(Math.random() * sizes.length)];
+    }
+
+    // Transparency transparency (alpha) from gimmick
     let ghostAlpha = 1.0;
     if (isGhost) {
       const alphas = [0.75, 0.5, 0.25];
       ghostAlpha = alphas[Math.floor(Math.random() * alphas.length)];
     }
-
-    let sizeScale = 1.0;
-    if (Math.random() < 0.20) {
-      sizeScale = 1.2 + Math.random() * 0.8; // 20% chance to be up to 2x size
-    }
-
-    const isSpinning = Math.random() < 0.25; // 25% chance to spin
-    const isSwaying = Math.random() < 0.25; // 25% chance to sway like a leaf
 
     const width = config.size.w * sizeScale;
     const height = config.size.h * sizeScale;
@@ -1081,9 +1111,8 @@ class GameEngine {
     let speed = this.baseSpeed * (0.8 + Math.random() * 0.4) * config.speedMult;
 
     // Apply speed modifiers for gimmicks
-    if (isFast) {
-      speed *= 1.6;
-    }
+    speed *= speedGimmickMult;
+
     if (isSwaying) {
       speed *= 0.75; // Slower vertical speed for leaf fall (floats)
     }
@@ -1119,7 +1148,8 @@ class GameEngine {
       height,
       speed,
       name: config.name,
-      isFast,
+      isFast: hasSpeedChg,
+      speedGimmickMult,
       isGhost,
       ghostAlpha,
       sizeScale,
