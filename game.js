@@ -1773,6 +1773,23 @@ class GameEngine {
 
       // Remove offscreen objects
       if (entity.y > CANVAS_HEIGHT) {
+        // 通常時（10倍フィーバー中ではない）かつ、回避対象キャラクターが地面に達した場合
+        if (this.scoreMultiplier !== 10) {
+          let pointsEarned = 0;
+          if (entity.type === 'ponyan') {
+            pointsEarned = 3 * this.scoreMultiplier;
+          } else if (entity.type === 'pomu') {
+            pointsEarned = 2 * this.scoreMultiplier;
+          } else if (entity.type === 'pomi') {
+            pointsEarned = 1 * this.scoreMultiplier;
+          }
+
+          if (pointsEarned > 0) {
+            this.score += pointsEarned;
+            // 地面の落下地点に得点のポップアップを表示
+            this.spawnFloatingText(`+${pointsEarned}`, entity.x + entity.width / 2, CANVAS_HEIGHT - 20, '#38b000');
+          }
+        }
         this.entities.splice(i, 1);
       }
     }
